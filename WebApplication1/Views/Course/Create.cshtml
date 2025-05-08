@@ -1,0 +1,35 @@
+﻿@model Course
+@{
+    ViewBag.Title = "Create Course";
+}
+
+<h2>Create New Course</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label for="Faculty">Faculty</label>
+        <select asp-for="Faculty" class="form-control" asp-items="@(new SelectList(ViewBag.Faculties))"></select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CourseName"></label>
+        <input asp-for="CourseName" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CourseCode"></label>
+        <input asp-for="CourseCode" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Description"></label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="DurationYears"></label>
+        <input asp-for="DurationYears" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>

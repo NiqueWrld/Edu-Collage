@@ -1,0 +1,20 @@
+﻿@model List<Course>
+@{
+    ViewBag.Title = "Courses";
+}
+
+<h2>Courses</h2>
+
+<a asp-action="Create" class="btn btn-success">Create Course</a>
+<a asp-action="ManageCourse" class="btn btn-info">Manage Course</a>
+
+@foreach (var faculty in ViewBag.Faculties as List<string>)
+{
+    <h4>@faculty</h4>
+    <ul>
+        @foreach (var course in Model.Where(c => c.Faculty == faculty))
+        {
+            <li>@course.CourseName (@course.CourseCode)</li>
+        }
+    </ul>
+}

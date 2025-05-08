@@ -1,0 +1,28 @@
+﻿@model List<Course>
+@{
+    ViewBag.Title = "Manage Courses";
+}
+
+<h2>Manage Existing Courses</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Faculty</th>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Duration (Years)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@course.Faculty</td>
+                <td>@course.CourseName</td>
+                <td>@course.CourseCode</td>
+                <td>@course.DurationYears</td>
+            </tr>
+        }
+    </tbody>
+</table>

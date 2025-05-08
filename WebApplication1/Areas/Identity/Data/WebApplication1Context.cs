@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Areas.Identity.Data;
+using WebApplication1.Models;
 
 namespace WebApplication1.Data;
 
@@ -19,4 +20,6 @@ public class WebApplication1Context : IdentityDbContext<WebApplication1User>
         // For example, you can rename the ASP.NET Identity table names and more.
         // Add your customizations after calling base.OnModelCreating(builder);
     }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Module> Modules { get; set; }
 }
