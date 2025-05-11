@@ -1,8 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Identity
-@using WebApplication1.Areas.Identity.Data
+@using WebApplication1.Data
 
-@inject SignInManager<WebApplication1User> SignInManager
-@inject UserManager<WebApplication1User> UserManager
+@inject SignInManager<NexelContext> SignInManager
+@inject UserManager<NexelContext> UserManager
 
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))

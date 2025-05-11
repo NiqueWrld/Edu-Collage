@@ -1,0 +1,37 @@
+﻿<!-- Incoming Call Notification -->
+<div id="incoming-call-notification" class="incoming-call-notification">
+    <div class="incoming-call-card">
+        <div class="incoming-call-header">
+            <i id="incoming-call-icon" class="bi bi-telephone-fill"></i>
+            <span id="incoming-call-type">Incoming Call</span>
+        </div>
+        <div class="incoming-call-body">
+            <div class="caller-info">
+                <div class="caller-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="caller-details">
+                    <h5 id="incoming-caller-name">Unknown Caller</h5>
+                    <p id="incoming-call-text">is calling you</p>
+                </div>
+            </div>
+        </div>
+        <div class="incoming-call-actions">
+            <button id="reject-call-btn" class="btn btn-danger">
+                <i class="bi bi-telephone-x-fill"></i> Reject
+            </button>
+            <button id="accept-call-btn" class="btn btn-success">
+                <i class="bi bi-telephone-forward-fill"></i> Accept
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Ongoing Call Banner -->
+<div id="ongoing-call-banner" class="ongoing-call-banner">
+    <div class="ongoing-call-info">
+        <i id="ongoing-call-icon" class="bi bi-telephone-fill me-2"></i>
+        <span>Active group call in progress</span>
+    </div>
+    <button id="join-ongoing-call-btn" class="btn btn-sm btn-primary">Join Call</button>
+</div>

@@ -9,9 +9,9 @@ namespace WebApplication1.Controllers
     [Authorize(Roles = "Admin")]
     public class CourseController : Controller
     {
-        private readonly WebApplication1Context _context;
+        private readonly NexelContext _context;
 
-        public CourseController(WebApplication1Context context)
+        public CourseController(NexelContext context)
         {
             _context = context;
         }

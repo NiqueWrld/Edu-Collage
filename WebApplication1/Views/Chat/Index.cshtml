@@ -1,0 +1,1646 @@
+﻿<!-- This is a fixed version to address the TypeError in checkForActiveGroupCalls -->
+@using Microsoft.AspNetCore.Identity
+@using WebApplication1.Data
+@using System.Security.Claims
+@inject SignInManager<IdentityUser> SignInManager
+
+@{
+    var moduleId = ViewBag.ModuleId;
+    var moduleName = ViewBag.ModuleName;
+}
+
+<div class="container">
+    <h2>@moduleName - Group Chat</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="chat-container card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Group Messages</h5>
+                    <div>
+                        <button id="audio-call-btn" class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-telephone-fill"></i> Call
+                        </button>
+                        <button id="video-call-btn" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-camera-video-fill"></i> Video
+                        </button>
+                    </div>
+                </div>
+                <div id="message-list" class="card-body message-list">
+                    <!-- Messages will be displayed here -->
+                    <div class="text-center text-muted py-3">
+                        <p>Loading messages...</p>
+                    </div>
+                </div>
+                <div class="card-footer p-2">
+                    <div class="input-group">
+                        <textarea id="message-text" class="form-control" placeholder="Type your message..." rows="2"></textarea>
+                        <button id="send-message" class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Users Online <span id="online-users-count" class="badge bg-success">0</span></h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul id="online-users-list" class="list-group list-group-flush">
+                        <!-- Online users will be displayed here -->
+                        <li class="list-group-item text-center text-muted py-3">Loading users...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Call Modal -->
+<div class="modal fade" id="video-call-modal" tabindex="-1" aria-labelledby="video-call-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="video-call-modal-label">
+                    <i class="bi bi-camera-video-fill me-2"></i>Video Call
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="call-container">
+                    <div class="row g-0">
+                        <div class="col-12 remote-video-container">
+                            <video id="remote-video" autoplay></video>
+                            <div class="local-video-overlay">
+                                <video id="local-video" autoplay muted></video>
+                            </div>
+                            <div id="call-participants-count" class="participants-indicator">
+                                <i class="bi bi-people-fill"></i> <span>1</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button id="toggle-video-btn" type="button" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-camera-video-fill"></i>
+                </button>
+                <button id="toggle-audio-btn" type="button" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button id="end-call-btn" type="button" class="btn btn-danger">
+                    <i class="bi bi-telephone-x-fill"></i> End Call
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audio Call Modal -->
+<div class="modal fade" id="audio-call-modal" tabindex="-1" aria-labelledby="audio-call-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="audio-call-modal-label">
+                    <i class="bi bi-telephone-fill me-2"></i>Audio Call
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="audio-call-container">
+                    <div class="caller-avatar mb-3">
+                        <i class="bi bi-people-circle" style="font-size: 4rem;"></i>
+                    </div>
+                    <h5 id="caller-name" class="mb-4">Group Call</h5>
+                    <div id="call-status" class="text-muted mb-2">Connecting...</div>
+                    <div id="call-timer" class="mb-3">00:00</div>
+                    <div id="audio-participants-count" class="mb-2">
+                        <i class="bi bi-people-fill"></i> <span>1</span> participants
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button id="toggle-audio-only-btn" type="button" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-mic-fill"></i>
+                </button>
+                <button id="end-audio-call-btn" type="button" class="btn btn-danger">
+                    <i class="bi bi-telephone-x-fill"></i> End Call
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incoming Call Notification -->
+<div id="incoming-call-notification" class="incoming-call-notification">
+    <div class="incoming-call-card">
+        <div class="incoming-call-header">
+            <i id="incoming-call-icon" class="bi bi-telephone-fill"></i>
+            <span id="incoming-call-type">Incoming Call</span>
+        </div>
+        <div class="incoming-call-body">
+            <div class="caller-info">
+                <div class="caller-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="caller-details">
+                    <h5 id="incoming-caller-name">Unknown Caller</h5>
+                    <p id="incoming-call-text">is calling you</p>
+                </div>
+            </div>
+        </div>
+        <div class="incoming-call-actions">
+            <button id="reject-call-btn" class="btn btn-danger">
+                <i class="bi bi-telephone-x-fill"></i> Reject
+            </button>
+            <button id="accept-call-btn" class="btn btn-success">
+                <i class="bi bi-telephone-forward-fill"></i> Accept
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Ongoing Call Banner -->
+<div id="ongoing-call-banner" class="ongoing-call-banner">
+    <div class="ongoing-call-info">
+        <i id="ongoing-call-icon" class="bi bi-telephone-fill me-2"></i>
+        <span>Active group call in progress</span>
+    </div>
+    <button id="join-ongoing-call-btn" class="btn btn-sm btn-primary">Join Call</button>
+</div>
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <script type="text/javascript" src="https://unpkg.com/@@cometchat/chat-sdk-javascript/CometChat.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // CometChat initialization parameters
+            let appID = "273422fe11905443";
+            let authKey = "21e4261f1cd94d7cae0d998094f8bded2681a922";
+            let region = "us";
+
+            // User information
+            const UID = "@User.FindFirstValue(ClaimTypes.NameIdentifier)";
+            const userName = "@User.Identity.Name";
+
+            // Module information for group
+            const moduleId = "@moduleId";
+            const moduleName = "@moduleName";
+            const GUID = `module_${moduleId}`;
+            const groupName = `${moduleName} Chat`;
+            const groupType = "PUBLIC";
+
+            // DOM elements
+            const messageList = document.getElementById('message-list');
+            const messageText = document.getElementById('message-text');
+            const sendButton = document.getElementById('send-message');
+            const onlineUsersList = document.getElementById('online-users-list');
+            const onlineUsersCount = document.getElementById('online-users-count');
+            const audioCallBtn = document.getElementById('audio-call-btn');
+            const videoCallBtn = document.getElementById('video-call-btn');
+
+            // Call-related elements
+            const videoCallModal = document.getElementById('video-call-modal');
+            const audioCallModal = document.getElementById('audio-call-modal');
+            const toggleVideoBtn = document.getElementById('toggle-video-btn');
+            const toggleAudioBtn = document.getElementById('toggle-audio-btn');
+            const toggleAudioOnlyBtn = document.getElementById('toggle-audio-only-btn');
+            const endCallBtn = document.getElementById('end-call-btn');
+            const endAudioCallBtn = document.getElementById('end-audio-call-btn');
+            const remoteVideo = document.getElementById('remote-video');
+            const localVideo = document.getElementById('local-video');
+            const callerName = document.getElementById('caller-name');
+            const callStatus = document.getElementById('call-status');
+            const callTimer = document.getElementById('call-timer');
+            const callParticipantsCount = document.getElementById('call-participants-count');
+            const audioParticipantsCount = document.getElementById('audio-participants-count');
+
+            // Incoming call elements
+            const incomingCallNotification = document.getElementById('incoming-call-notification');
+            const incomingCallIcon = document.getElementById('incoming-call-icon');
+            const incomingCallType = document.getElementById('incoming-call-type');
+            const incomingCallerName = document.getElementById('incoming-caller-name');
+            const incomingCallText = document.getElementById('incoming-call-text');
+            const acceptCallBtn = document.getElementById('accept-call-btn');
+            const rejectCallBtn = document.getElementById('reject-call-btn');
+
+            // Ongoing call banner elements
+            const ongoingCallBanner = document.getElementById('ongoing-call-banner');
+            const ongoingCallIcon = document.getElementById('ongoing-call-icon');
+            const joinOngoingCallBtn = document.getElementById('join-ongoing-call-btn');
+
+            // Call session variables
+            let activeCall = null;
+            let callStartTime = null;
+            let callTimerInterval = null;
+            let isAudioMuted = false;
+            let isVideoMuted = false;
+            let incomingCallData = null;
+            let ongoingGroupCall = null;
+            let callRingtone = null;
+            let callParticipants = new Set();
+            let videoCallModal_bs = null;
+            let audioCallModal_bs = null;
+
+            // Initialize Bootstrap modals
+            if (typeof bootstrap !== 'undefined') {
+                videoCallModal_bs = new bootstrap.Modal(videoCallModal);
+                audioCallModal_bs = new bootstrap.Modal(audioCallModal);
+
+                // Handle modal close event to end call
+                videoCallModal.addEventListener('hidden.bs.modal', () => {
+                    if (activeCall) endCurrentCall();
+                });
+
+                audioCallModal.addEventListener('hidden.bs.modal', () => {
+                    if (activeCall) endCurrentCall();
+                });
+            }
+
+            // Create audio element for ringtone
+            function initializeRingtone() {
+                try {
+                    callRingtone = new Audio("/sounds/ringtone.mp3"); // Ensure you have this file in your wwwroot/sounds folder
+                    callRingtone.loop = true;
+                } catch (error) {
+                    console.warn("Could not initialize ringtone:", error);
+                }
+            }
+
+            // Initialize user object
+            var user = new CometChat.User(UID);
+            user.setName(userName);
+
+            // Initialize CometChat
+            let appSetting = new CometChat.AppSettingsBuilder()
+                .subscribePresenceForAllUsers()
+                .setRegion(region)
+                .autoEstablishSocketConnection(true)
+                .build();
+
+            CometChat.init(appID, appSetting).then(
+                () => {
+                    console.log("CometChat initialization completed successfully");
+                    loginToCometChat();
+                    initializeRingtone();
+                },
+                (error) => {
+                    console.log("CometChat initialization failed with error:", error);
+                    showError("Failed to initialize chat. Please refresh the page.");
+                }
+            );
+
+            // Login to CometChat
+            function loginToCometChat() {
+                CometChat.getLoggedinUser().then(
+                    (user) => {
+                        if (!user) {
+                            CometChat.login(UID, authKey).then(
+                                (user) => {
+                                    console.log("Login Successful:", { user });
+                                    joinOrCreateGroup();
+                                },
+                                (error) => {
+                                    console.log("Login failed with exception:", { error });
+                                    registerToCometChat();
+                                }
+                            );
+                        } else {
+                            console.log("Already logged in:", { user });
+                            joinOrCreateGroup();
+                        }
+                    },
+                    (error) => {
+                        console.log("Error checking logged in user:", { error });
+                        showError("Failed to connect to chat service.");
+                    }
+                );
+            }
+
+            // Register new user if needed
+            function registerToCometChat() {
+                CometChat.createUser(user, authKey).then(
+                    (user) => {
+                        console.log("User created:", user);
+                        loginToCometChat();
+                    },
+                    (error) => {
+                        console.log("User registration error:", error);
+                        showError("Failed to register your account with chat service.");
+                    }
+                );
+            }
+
+            function createGroup(GUID, groupName) {
+                console.log("Creating new group:", GUID, groupName);
+
+                var groupType = CometChat.GROUP_TYPE.PUBLIC; // Ensure this is a valid constant
+                var password = "";
+
+                var group = new CometChat.Group(GUID, groupName, groupType, password);
+
+                CometChat.createGroup(group).then(
+                    group => {
+                        console.log("Group created successfully:", group);
+                        location.reload();
+                    }, error => {
+                        console.error("Group creation failed with exception:", error);
+                    }
+                );
+            }
+
+            // Join existing group or create a new one
+            function joinOrCreateGroup() {
+                console.log("Attempting to join group with GUID:", GUID);
+
+                // Try to join the group directly first
+                CometChat.joinGroup(GUID, groupType, "").then(
+                    group => {
+                        console.log("Group joining successful:", { group });
+                        initializeChat();
+                    },
+                    error => {
+                        console.log("Group joining failed with error:", error);
+
+                        // If group doesn't exist, create it immediately
+                        if (error && error.code === "ERR_GUID_NOT_FOUND" || error.code === "ERR_GROUP_NOT_FOUND") {
+                            console.log("Group not found, creating new group with GUID:", GUID);
+                            createGroup(GUID, groupName);
+                        }
+                        // If already a member, just initialize the chat
+                        else if (error.code === "ERR_ALREADY_JOINED") {
+                            console.log("Already a member of the group, initializing chat");
+                            initializeChat();
+                        }
+                        else {
+                            showError("Failed to join the chat room: " + error.message);
+                        }
+                    }
+                );
+            }
+
+            // Initialize chat features after joining group
+            function initializeChat() {
+                // Clear loading messages
+                messageList.innerHTML = '';
+                onlineUsersList.innerHTML = '';
+
+                // Fetch previous messages
+                fetchPreviousMessages();
+
+                // Fetch group members
+                fetchGroupMembers();
+
+                // Check for active calls in the group
+                checkForActiveGroupCalls();
+
+                // Add message listeners
+                addMessageListeners();
+
+                // Add user listeners
+                addUserListeners();
+
+                // Add call listeners
+                addCallListeners();
+
+                // Setup send button
+                setupSendButton();
+
+                // Setup call buttons
+                setupCallButtons();
+
+                // Setup incoming call handlers
+                setupIncomingCallHandlers();
+            }
+
+            // Fetch previous messages from the group
+            function fetchPreviousMessages() {
+                const messageRequest = new CometChat.MessagesRequestBuilder()
+                    .setGUID(GUID)
+                    .setLimit(30)
+                    .build();
+
+                messageRequest.fetchPrevious().then(
+                    messages => {
+                        console.log("Previous messages:", messages);
+                        messages.forEach(message => {
+                            displayMessage(message);
+                        });
+                        scrollToBottom();
+                    },
+                    error => {
+                        console.log("Message fetching failed with error:", error);
+                    }
+                );
+            }
+
+            // Fetch group members
+            function fetchGroupMembers() {
+                const memberRequest = new CometChat.GroupMembersRequestBuilder(GUID)
+                    .setLimit(100)
+                    .build();
+
+                memberRequest.fetchNext().then(
+                    groupMembers => {
+                        console.log("Group members:", { groupMembers });
+                        updateOnlineUsersCount(groupMembers.length);
+
+                        onlineUsersList.innerHTML = '';
+                        groupMembers.forEach(member => {
+                            displayUser(member);
+                        });
+                    },
+                    error => {
+                        console.log("Group members fetching failed with error:", error);
+                    }
+                );
+            }
+
+            // Check if there are any active calls in the group
+            function checkForActiveGroupCalls() {
+                try {
+                    // Check if getActiveCall method exists in CometChat
+                    if (typeof CometChat.getActiveCall === 'function') {
+                        CometChat.getActiveCall().then(
+                            call => {
+                                // If an active call exists and it's for this group
+                                if (call && call.getReceiverId() === GUID &&
+                                    call.getReceiverType() === CometChat.RECEIVER_TYPE.GROUP) {
+
+                                    console.log("Active group call found:", call);
+                                    ongoingGroupCall = call;
+
+                                    // Show the ongoing call banner
+                                    showOngoingCallBanner(call.getType() === CometChat.CALL_TYPE.VIDEO);
+                                }
+                            },
+                            error => {
+                                console.log("Error checking for active calls:", error);
+                            }
+                        );
+                    } else {
+                        // Fallback method using custom messaging for call status
+                        console.log("getActiveCall method not available, using fallback for call detection");
+
+                        // Fetch recent custom messages to check for active calls
+                        const messageRequest = new CometChat.MessagesRequestBuilder()
+                            .setGUID(GUID)
+                            .setLimit(5)
+                            .setCategory("custom")
+                            .build();
+
+                        messageRequest.fetchPrevious().then(
+                            messages => {
+                                // Look for the most recent call_status message
+                                const callStatusMessages = messages.filter(msg =>
+                                    msg.getData() &&
+                                    msg.getData().customData &&
+                                    msg.getData().customData.type === 'call_status'
+                                );
+
+                                if (callStatusMessages.length > 0) {
+                                    // Sort by time, newest first
+                                    callStatusMessages.sort((a, b) => b.getSentAt() - a.getSentAt());
+
+                                    const latestCallStatus = callStatusMessages[0].getData().customData;
+
+                                    // If the latest call status is 'started' and it's recent (within last 30 minutes)
+                                    const callStartTime = callStatusMessages[0].getSentAt();
+                                    const currentTime = Math.floor(Date.now() / 1000);
+                                    const timeElapsed = currentTime - callStartTime;
+
+                                    if (latestCallStatus.status === 'started' && timeElapsed < 1800) {
+                                        console.log("Recent active call found via custom message:", latestCallStatus);
+
+                                        // Create a simulated call object
+                                        ongoingGroupCall = {
+                                            getSessionId: () => latestCallStatus.callId,
+                                            getType: () => latestCallStatus.callType,
+                                            getReceiverType: () => CometChat.RECEIVER_TYPE.GROUP,
+                                            getReceiverId: () => GUID
+                                        };
+
+                                        showOngoingCallBanner(latestCallStatus.callType === CometChat.CALL_TYPE.VIDEO);
+                                    }
+                                }
+                            },
+                            error => {
+                                console.log("Error checking for call status messages:", error);
+                            }
+                        );
+                    }
+                } catch (error) {
+                    console.log("Error in checkForActiveGroupCalls:", error);
+                }
+            }
+
+            // Add listeners for incoming messages
+            function addMessageListeners() {
+                CometChat.addMessageListener(
+                    "group-message-listener",
+                    new CometChat.MessageListener({
+                        onTextMessageReceived: message => {
+                            console.log("Text message received:", { message });
+                            if (message.getReceiverType() === 'group' && message.getReceiverId() === GUID) {
+                                displayMessage(message);
+                                scrollToBottom();
+                            }
+                        },
+                        onMediaMessageReceived: message => {
+                            console.log("Media message received:", { message });
+                            if (message.getReceiverType() === 'group' && message.getReceiverId() === GUID) {
+                                displayMessage(message);
+                                scrollToBottom();
+                            }
+                        },
+                        onCustomMessageReceived: message => {
+                            console.log("Custom message received:", { message });
+                            if (message.getReceiverType() === 'group' && message.getReceiverId() === GUID) {
+                                // Handle custom call status message
+                                if (message.getData() &&
+                                    message.getData().customData &&
+                                    message.getData().customData.type === 'call_status') {
+
+                                    const customData = message.getData().customData;
+
+                                    // If a new call has started and this user isn't the initiator
+                                    if (customData.status === 'started' &&
+                                        customData.initiator.uid !== UID &&
+                                        !activeCall) {
+
+                                        // Create a simulated call object for the banner
+                                        ongoingGroupCall = {
+                                            getSessionId: () => customData.callId,
+                                            getType: () => customData.callType,
+                                            getReceiverType: () => CometChat.RECEIVER_TYPE.GROUP,
+                                            getReceiverId: () => GUID
+                                        };
+
+                                        showOngoingCallBanner(customData.callType === CometChat.CALL_TYPE.VIDEO);
+                                    }
+                                    // If a call has ended and it's the current ongoing call
+                                    else if (customData.status === 'ended' &&
+                                        ongoingGroupCall &&
+                                        ongoingGroupCall.getSessionId() === customData.callId) {
+
+                                        hideOngoingCallBanner();
+                                        ongoingGroupCall = null;
+                                    }
+
+                                    displayMessage(message);
+                                    scrollToBottom();
+                                }
+                            }
+                        }
+                    })
+                );
+            }
+
+            // Add listeners for user status changes
+            function addUserListeners() {
+                CometChat.addUserListener(
+                    "user-listener",
+                    new CometChat.UserListener({
+                        onUserOnline: onlineUser => {
+                            console.log("User online:", { onlineUser });
+                            updateUserStatus(onlineUser.getUid(), true);
+                        },
+                        onUserOffline: offlineUser => {
+                            console.log("User offline:", { offlineUser });
+                            updateUserStatus(offlineUser.getUid(), false);
+                        }
+                    })
+                );
+
+                CometChat.addGroupListener(
+                    "group-listener",
+                    new CometChat.GroupListener({
+                        onUserJoined: (joinedUser, joinedGroup) => {
+                            if (joinedGroup.getGuid() === GUID) {
+                                console.log("User joined:", joinedUser);
+                                displayUser(joinedUser);
+                                updateOnlineUsersCount();
+                            }
+                        },
+                        onUserLeft: (leftUser, leftGroup) => {
+                            if (leftGroup.getGuid() === GUID) {
+                                console.log("User left:", leftUser);
+                                removeUser(leftUser.getUid());
+                                updateOnlineUsersCount();
+                            }
+                        }
+                    })
+                );
+            }
+
+            // Add listeners for call events
+            function addCallListeners() {
+                CometChat.addCallListener(
+                    "call-listener",
+                    new CometChat.CallListener({
+                        onIncomingCallReceived: incomingCall => {
+                            console.log("Incoming call:", incomingCall);
+
+                            if (incomingCall.getReceiverType() === 'group' &&
+                                incomingCall.getReceiverId() === GUID) {
+
+                                // Store incoming call data
+                                incomingCallData = incomingCall;
+
+                                // Show incoming call UI
+                                showIncomingCallNotification(incomingCall);
+
+                                // Play ringtone
+                                playRingtone();
+                            }
+                        },
+                        onOutgoingCallAccepted: acceptedCall => {
+                            console.log("Outgoing call accepted:", acceptedCall);
+                            startCall(acceptedCall);
+
+                            // Broadcast a custom message to the group that a call has started
+                            sendCallStatusMessage(acceptedCall, 'started');
+                        },
+                        onOutgoingCallRejected: rejectedCall => {
+                            console.log("Outgoing call rejected:", rejectedCall);
+                            hideIncomingCallNotification();
+                            stopRingtone();
+                        },
+                        onIncomingCallCancelled: cancelledCall => {
+                            console.log("Incoming call cancelled:", cancelledCall);
+                            hideIncomingCallNotification();
+                            stopRingtone();
+                        },
+                        onCallEndedMessageReceived: call => {
+                            console.log("Call ended message received:", call);
+                            if (activeCall && activeCall.getSessionId() === call.getSessionId()) {
+                                endCurrentCall(false);
+                            }
+
+                            // If this was the ongoing group call, hide the banner
+                            if (ongoingGroupCall && ongoingGroupCall.getSessionId() === call.getSessionId()) {
+                                hideOngoingCallBanner();
+                                ongoingGroupCall = null;
+                            }
+                        }
+                    })
+                );
+            }
+
+            // Send a custom message to notify others about call status
+            function sendCallStatusMessage(call, status) {
+                const customData = {
+                    type: "call_status",
+                    callType: call.getType(),
+                    callId: call.getSessionId(),
+                    status: status,
+                    initiator: {
+                        uid: UID,
+                        name: userName
+                    }
+                };
+
+                const customMessage = new CometChat.CustomMessage(
+                    GUID,
+                    CometChat.RECEIVER_TYPE.GROUP,
+                    "call_status",
+                    customData
+                );
+
+                CometChat.sendCustomMessage(customMessage).then(
+                    message => {
+                        console.log("Call status message sent:", message);
+                    },
+                    error => {
+                        console.log("Error sending call status message:", error);
+                    }
+                );
+            }
+
+            // Setup handlers for incoming call UI
+            function setupIncomingCallHandlers() {
+                // Accept call button
+                acceptCallBtn.addEventListener('click', () => {
+                    if (incomingCallData) {
+                        acceptCall(incomingCallData);
+                        hideIncomingCallNotification();
+                        stopRingtone();
+                    }
+                });
+
+                // Reject call button
+                rejectCallBtn.addEventListener('click', () => {
+                    if (incomingCallData) {
+                        rejectCall(incomingCallData);
+                        hideIncomingCallNotification();
+                        stopRingtone();
+                    }
+                });
+
+                // Join ongoing call button
+                joinOngoingCallBtn.addEventListener('click', () => {
+                    if (ongoingGroupCall) {
+                        joinOngoingCall(ongoingGroupCall);
+                    }
+                });
+            }
+
+            // Show the incoming call notification
+            function showIncomingCallNotification(call) {
+                const isVideoCall = call.getType() === CometChat.CALL_TYPE.VIDEO;
+                const caller = call.getSender();
+
+                // Set the call type icon and text
+                incomingCallIcon.className = isVideoCall ?
+                    'bi bi-camera-video-fill' : 'bi bi-telephone-fill';
+                incomingCallType.textContent = isVideoCall ? 'Incoming Video Call' : 'Incoming Audio Call';
+
+                // Set caller information
+                incomingCallerName.textContent = caller.getName() || caller.getUid();
+                incomingCallText.textContent = 'is calling the group';
+
+                // Show the notification
+                incomingCallNotification.classList.add('active');
+
+                // Automatically hide notification after 30 seconds if not answered
+                setTimeout(() => {
+                    if (incomingCallData && incomingCallData.getSessionId() === call.getSessionId()) {
+                        hideIncomingCallNotification();
+                        stopRingtone();
+                    }
+                }, 30000);
+            }
+
+            // Hide the incoming call notification
+            function hideIncomingCallNotification() {
+                incomingCallNotification.classList.remove('active');
+                incomingCallData = null;
+            }
+
+            // Show ongoing call banner
+            function showOngoingCallBanner(isVideo) {
+                ongoingCallIcon.className = isVideo ?
+                    'bi bi-camera-video-fill me-2' : 'bi bi-telephone-fill me-2';
+                ongoingCallBanner.classList.add('active');
+            }
+
+            // Hide ongoing call banner
+            function hideOngoingCallBanner() {
+                ongoingCallBanner.classList.remove('active');
+            }
+
+            // Accept an incoming call
+            function acceptCall(call) {
+                CometChat.acceptCall(call.getSessionId()).then(
+                    call => {
+                        console.log("Call accepted successfully:", call);
+                        startCall(call);
+                    },
+                    error => {
+                        console.log("Call acceptance failed with error:", error);
+                        showError("Failed to accept call.");
+                    }
+                );
+            }
+
+            // Reject an incoming call
+            function rejectCall(call) {
+                CometChat.rejectCall(call.getSessionId(), CometChat.CALL_STATUS.REJECTED).then(
+                    call => {
+                        console.log("Call rejected successfully:", call);
+                    },
+                    error => {
+                        console.log("Call rejection failed with error:", error);
+                    }
+                );
+            }
+
+            // Join an ongoing group call
+            function joinOngoingCall(call) {
+                // Hide the banner
+                hideOngoingCallBanner();
+
+                if (typeof call.getSessionId === 'function') {
+                    // Accept the call to join it if it's a proper call object
+                    acceptCall(call);
+                } else {
+                    // For simulated call objects from custom messages
+                    const callType = call.getType();
+                    const isVideoCall = callType === CometChat.CALL_TYPE.VIDEO;
+
+                    // Show appropriate modal based on call type
+                    if (isVideoCall) {
+                        if (videoCallModal_bs) videoCallModal_bs.show();
+                    } else {
+                        if (audioCallModal_bs) audioCallModal_bs.show();
+                        callerName.textContent = "Group Call";
+                        callStatus.textContent = "Joining...";
+                    }
+
+                    // Create a new call to join the session
+                    const newCall = new CometChat.Call(
+                        GUID,
+                        callType,
+                        CometChat.RECEIVER_TYPE.GROUP
+                    );
+
+                    CometChat.initiateCall(newCall).then(
+                        outgoingCall => {
+                            console.log("Call initiated to join group call:", outgoingCall);
+                            activeCall = outgoingCall;
+                            callParticipants.add(UID);
+                            updateCallParticipantsCount();
+                            startCallTimer();
+                        },
+                        error => {
+                            console.log("Error joining call:", error);
+                            hideCallUI();
+                            showError("Failed to join the ongoing call.");
+                        }
+                    );
+                }
+            }
+
+            // Play ringtone for incoming calls
+            function playRingtone() {
+                if (callRingtone) {
+                    callRingtone.currentTime = 0;
+                    callRingtone.play().catch(error => {
+                        console.log("Error playing ringtone:", error);
+                    });
+                }
+            }
+
+            // Stop ringtone
+            function stopRingtone() {
+                if (callRingtone && !callRingtone.paused) {
+                    try {
+                        callRingtone.pause();
+                        callRingtone.currentTime = 0;
+                    } catch (error) {
+                        console.log("Error stopping ringtone:", error);
+                    }
+                }
+            }
+
+            // Start a call session
+            function startCall(call) {
+                activeCall = call;
+
+                // Add self to participants
+                callParticipants.add(UID);
+
+                // Track this as the ongoing group call
+                ongoingGroupCall = call;
+
+                const callType = call.getType();
+                const isVideoCall = callType === CometChat.CALL_TYPE.VIDEO;
+
+                // Display appropriate modal
+                if (isVideoCall) {
+                    if (videoCallModal_bs) videoCallModal_bs.show();
+                } else {
+                    if (audioCallModal_bs) audioCallModal_bs.show();
+                    callerName.textContent = "Group Call";
+                    callStatus.textContent = "Connected";
+                }
+
+                // Start call timer
+                startCallTimer();
+
+                // Update participant count
+                updateCallParticipantsCount();
+
+                // Initialize CometChat call
+                const callSettings = new CometChat.CallSettingsBuilder()
+                    .setSessionID(call.getSessionId())
+                    .enableDefaultLayout(true)
+                    .setIsAudioOnlyCall(!isVideoCall)
+                    .setLocalizedStringObject({
+                        "CALL_SCREEN_TITLE": "Group Call"
+                    })
+                    .build();
+
+                CometChat.startCall(
+                    callSettings,
+                    document.getElementById(isVideoCall ? 'remote-video' : 'audio-call-container'),
+                    new CometChat.OngoingCallListener({
+                        onUserJoined: user => {
+                            console.log("User joined call:", user);
+                            // Add to participants list
+                            callParticipants.add(user.getUid());
+                            updateCallParticipantsCount();
+
+                            // Display a toast notification
+                            showToast(`${user.getName() || user.getUid()} joined the call`);
+                        },
+                        onUserLeft: user => {
+                            console.log("User left call:", user);
+                            // Remove from participants list
+                            callParticipants.delete(user.getUid());
+                            updateCallParticipantsCount();
+
+                            // Display a toast notification
+                            showToast(`${user.getName() || user.getUid()} left the call`);
+                        },
+                        onCallEnded: call => {
+                            console.log("Call ended:", call);
+                            endCurrentCall(false);
+                        },
+                        onError: error => {
+                            console.log("Call error:", error);
+                            showError("Error during call: " + error.message);
+                            endCurrentCall();
+                        },
+                        onMediaDeviceListUpdated: deviceList => {
+                            console.log("Device list updated:", deviceList);
+                        },
+                        onUserListUpdated: userList => {
+                            console.log("User list updated:", userList);
+                            // Update participants count from the updated list
+                            callParticipants = new Set(userList.map(user => user.getUid()));
+                            updateCallParticipantsCount();
+                        },
+                        onAudioModesUpdated: audioModes => {
+                            console.log("Audio modes updated:", audioModes);
+                        }
+                    })
+                );
+            }
+
+            // Update the participants count in the UI
+            function updateCallParticipantsCount() {
+                const count = callParticipants.size;
+
+                // Update video call participants counter
+                if (callParticipantsCount) {
+                    const span = callParticipantsCount.querySelector('span');
+                    if (span) span.textContent = count;
+                }
+
+                // Update audio call participants counter
+                if (audioParticipantsCount) {
+                    const span = audioParticipantsCount.querySelector('span');
+                    if (span) span.textContent = count;
+                }
+            }
+
+            // Show a toast notification
+            function showToast(message) {
+                // Create toast element if it doesn't exist
+                let toastContainer = document.getElementById('toast-container');
+
+                if (!toastContainer) {
+                    toastContainer = document.createElement('div');
+                    toastContainer.id = 'toast-container';
+                    toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                    document.body.appendChild(toastContainer);
+                }
+
+                const toastId = 'toast-' + Date.now();
+                const toastEl = document.createElement('div');
+                toastEl.id = toastId;
+                toastEl.className = 'toast';
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+
+                toastEl.innerHTML = `
+                            <div class="toast-header">
+                                <strong class="me-auto">Call Notification</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                ${message}
+                            </div>
+                        `;
+
+                toastContainer.appendChild(toastEl);
+
+                // Initialize toast with Bootstrap
+                if (typeof bootstrap !== 'undefined') {
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+
+                    // Auto-remove after it's hidden
+                    toastEl.addEventListener('hidden.bs.toast', () => {
+                        toastEl.remove();
+                    });
+                }
+            }
+
+            // End the current active call
+            function endCurrentCall(sendEndCallSignal = true) {
+                if (activeCall) {
+                    if (sendEndCallSignal) {
+                        CometChat.endCall(activeCall.getSessionId()).then(
+                            call => {
+                                console.log("Call ended successfully:", call);
+                                // Broadcast a custom message to the group that the call has ended
+                                sendCallStatusMessage(activeCall, 'ended');
+                            },
+                            error => {
+                                console.log("Call end failed with error:", error);
+                            }
+                        );
+                    }
+
+                    // Stop call timer
+                    if (callTimerInterval) {
+                        clearInterval(callTimerInterval);
+                        callTimerInterval = null;
+                    }
+
+                    // Reset call variables
+                    const endedCallSessionId = activeCall.getSessionId();
+                    activeCall = null;
+                    callStartTime = null;
+                    callParticipants.clear();
+
+                    // Hide UI
+                    hideCallUI();
+
+                    // If this was the ongoing group call, also hide the banner
+                    if (ongoingGroupCall && ongoingGroupCall.getSessionId() === endedCallSessionId) {
+                        hideOngoingCallBanner();
+                        ongoingGroupCall = null;
+                    }
+                }
+            }
+
+            // Hide call UI elements
+            function hideCallUI() {
+                if (videoCallModal_bs) videoCallModal_bs.hide();
+                if (audioCallModal_bs) audioCallModal_bs.hide();
+            }
+
+            // Start call timer
+            function startCallTimer() {
+                callStartTime = new Date();
+
+                if (callTimerInterval) {
+                    clearInterval(callTimerInterval);
+                }
+
+                callTimerInterval = setInterval(() => {
+                    if (!callStartTime) return;
+
+                    const now = new Date();
+                    const diff = Math.floor((now - callStartTime) / 1000);
+
+                    const minutes = Math.floor(diff / 60).toString().padStart(2, '0');
+                    const seconds = (diff % 60).toString().padStart(2, '0');
+
+                    if (callTimer) {
+                        callTimer.textContent = `${minutes}:${seconds}`;
+                    }
+                }, 1000);
+            }
+
+            // Setup send button functionality
+            function setupSendButton() {
+                sendButton.addEventListener('click', sendMessage);
+                messageText.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+
+            // Send a new message
+            function sendMessage() {
+                const text = messageText.value.trim();
+                if (!text) return;
+
+                var textMessage = new CometChat.TextMessage(
+                    GUID,
+                    text,
+                    CometChat.RECEIVER_TYPE.GROUP
+                );
+
+                CometChat.sendMessage(textMessage).then(
+                    message => {
+                        console.log("Message sent successfully:", message);
+                        messageText.value = '';
+                        displayMessage(message);
+                        scrollToBottom();
+                    },
+                    error => {
+                        console.log("Message sending failed with error:", error);
+                        showError("Failed to send message. Please try again.");
+                    }
+                );
+            }
+
+            // Display a message in the chat
+            function displayMessage(message) {
+                // Handle custom call status messages
+                if (message.getType() === 'custom' &&
+                    message.getData() &&
+                    message.getData().customData &&
+                    message.getData().customData.type === 'call_status') {
+
+                    displayCallStatusMessage(message);
+                    return;
+                }
+
+                const isMine = message.getSender().getUid() === UID;
+                const senderName = message.getSender().getName() || message.getSender().getUid();
+
+                let messageContent = '';
+                if (message.getType() === 'text') {
+                    messageContent = message.getText();
+                } else if (message.getType() === 'image') {
+                    messageContent = `<img src="${message.getData().url}" class="img-fluid rounded" alt="Image">`;
+                } else if (message.getType() === 'file') {
+                    messageContent = `<a href="${message.getData().url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-file-earmark"></i> Download File
+                                                     </a>`;
+                }
+
+                const timestamp = new Date(message.getSentAt() * 1000).toLocaleTimeString();
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isMine ? 'message-mine' : 'message-others'}`;
+                messageDiv.innerHTML = `
+                                    ${!isMine ? `<div class="message-sender">${senderName}</div>` : ''}
+                                    <div class="message-content">${messageContent}</div>
+                                    <div class="message-time">${timestamp}</div>
+                                `;
+
+                messageList.appendChild(messageDiv);
+            }
+
+            // Display call status message in the chat
+            function displayCallStatusMessage(message) {
+                const customData = message.getData().customData;
+                const initiator = customData.initiator;
+                const callType = customData.callType;
+                const status = customData.status;
+
+                // Create a system message
+                const systemMessageDiv = document.createElement('div');
+                systemMessageDiv.className = 'message-system';
+
+                let messageText = '';
+                const initiatorName = initiator.name || initiator.uid;
+
+                if (status === 'started') {
+                    messageText = `${initiatorName} started a ${callType === CometChat.CALL_TYPE.VIDEO ? 'video' : 'audio'} call`;
+
+                    // If this is a new call and not the current user who started it, show the ongoing call banner
+                    if (initiator.uid !== UID && !activeCall) {
+                        ongoingGroupCall = {
+                            getSessionId: () => customData.callId,
+                            getType: () => callType,
+                            getReceiverType: () => CometChat.RECEIVER_TYPE.GROUP,
+                            getReceiverId: () => GUID
+                        };
+                        showOngoingCallBanner(callType === CometChat.CALL_TYPE.VIDEO);
+                    }
+                } else if (status === 'ended') {
+                    messageText = `${initiatorName} ended the call`;
+
+                    // If this call ended and it was the ongoing call, hide the banner
+                    if (ongoingGroupCall && ongoingGroupCall.getSessionId() === customData.callId) {
+                        hideOngoingCallBanner();
+                        ongoingGroupCall = null;
+                    }
+                }
+
+                systemMessageDiv.innerHTML = `
+                            <div class="system-message-content">
+                                <i class="bi ${callType === CometChat.CALL_TYPE.VIDEO ? 'bi-camera-video-fill' : 'bi-telephone-fill'} me-2"></i>
+                                ${messageText}
+                            </div>
+                            <div class="message-time">${new Date(message.getSentAt() * 1000).toLocaleTimeString()}</div>
+                        `;
+
+                messageList.appendChild(systemMessageDiv);
+                scrollToBottom();
+            }
+
+            // Display a user in the online users list
+            function displayUser(user) {
+                // Check if user already exists in the list
+                const existingUser = document.getElementById(`user-${user.getUid()}`);
+                if (existingUser) return;
+
+                const userItem = document.createElement('li');
+                userItem.className = 'list-group-item user-item';
+                userItem.id = `user-${user.getUid()}`;
+
+                // Get first letter of name for avatar
+                const name = user.getName() || user.getUid();
+                const firstLetter = name.charAt(0).toUpperCase();
+
+                // Check if user is online
+                const isOnline = user.getStatus() === 'online';
+
+                userItem.innerHTML = `
+                                    <div class="user-avatar">${firstLetter}</div>
+                                    <div class="user-name">${name}</div>
+                                    <div class="user-status ${isOnline ? 'status-online' : 'status-offline'}"></div>
+                                `;
+
+                onlineUsersList.appendChild(userItem);
+                updateOnlineUsersCount();
+            }
+
+            // Remove a user from the online users list
+            function removeUser(uid) {
+                const userItem = document.getElementById(`user-${uid}`);
+                if (userItem) {
+                    userItem.remove();
+                    updateOnlineUsersCount();
+                }
+            }
+
+            // Update user online status
+            function updateUserStatus(uid, isOnline) {
+                const userItem = document.getElementById(`user-${uid}`);
+                if (userItem) {
+                    const statusDot = userItem.querySelector('.user-status');
+                    if (statusDot) {
+                        statusDot.className = `user-status ${isOnline ? 'status-online' : 'status-offline'}`;
+                    }
+                    updateOnlineUsersCount();
+                }
+            }
+
+            // Update the count of online users
+            function updateOnlineUsersCount(count) {
+                if (count === undefined) {
+                    // Count users with online status
+                    const onlineUsers = document.querySelectorAll('.user-status.status-online').length;
+                    onlineUsersCount.textContent = onlineUsers;
+                } else {
+                    onlineUsersCount.textContent = count;
+                }
+            }
+
+            // Setup call and video call buttons
+            function setupCallButtons() {
+                // Audio call button
+                audioCallBtn.addEventListener('click', function () {
+                    initializeCall(false);
+                });
+
+                // Video call button
+                videoCallBtn.addEventListener('click', function () {
+                    initializeCall(true);
+                });
+
+                // End call button
+                endCallBtn.addEventListener('click', function () {
+                    endCurrentCall();
+                });
+
+                // End audio call button
+                endAudioCallBtn.addEventListener('click', function () {
+                    endCurrentCall();
+                });
+
+                // Toggle video button
+                toggleVideoBtn.addEventListener('click', function () {
+                    if (activeCall) {
+                        isVideoMuted = !isVideoMuted;
+                        CometChat.pauseVideo(activeCall.getSessionId(), isVideoMuted);
+                        toggleVideoBtn.innerHTML = isVideoMuted ?
+                            '<i class="bi bi-camera-video-off-fill"></i>' :
+                            '<i class="bi bi-camera-video-fill"></i>';
+                    }
+                });
+
+                // Toggle audio button
+                toggleAudioBtn.addEventListener('click', function () {
+                    if (activeCall) {
+                        isAudioMuted = !isAudioMuted;
+                        CometChat.pauseAudio(activeCall.getSessionId(), isAudioMuted);
+                        toggleAudioBtn.innerHTML = isAudioMuted ?
+                            '<i class="bi bi-mic-mute-fill"></i>' :
+                            '<i class="bi bi-mic-fill"></i>';
+                    }
+                });
+
+                // Toggle audio for audio-only call
+                toggleAudioOnlyBtn.addEventListener('click', function () {
+                    if (activeCall) {
+                        isAudioMuted = !isAudioMuted;
+                        CometChat.pauseAudio(activeCall.getSessionId(), isAudioMuted);
+                        toggleAudioOnlyBtn.innerHTML = isAudioMuted ?
+                            '<i class="bi bi-mic-mute-fill"></i>' :
+                            '<i class="bi bi-mic-fill"></i>';
+                    }
+                });
+            }
+
+            // Initialize a call (audio or video)
+            function initializeCall(isVideoCall) {
+                const callType = isVideoCall ? CometChat.CALL_TYPE.VIDEO : CometChat.CALL_TYPE.AUDIO;
+
+                const call = new CometChat.Call(GUID, callType, CometChat.RECEIVER_TYPE.GROUP);
+
+                CometChat.initiateCall(call).then(
+                    outgoingCall => {
+                        console.log("Call initiated successfully:", outgoingCall);
+
+                        // Show appropriate modal based on call type
+                        if (isVideoCall) {
+                            if (videoCallModal_bs) videoCallModal_bs.show();
+                        } else {
+                            if (audioCallModal_bs) audioCallModal_bs.show();
+                            callerName.textContent = "Group Call";
+                            callStatus.textContent = "Calling...";
+                        }
+
+                        // Set active call
+                        activeCall = outgoingCall;
+
+                        // Reset participants and add self
+                        callParticipants.clear();
+                        callParticipants.add(UID);
+                        updateCallParticipantsCount();
+                    },
+                    error => {
+                        console.log("Call initiation failed with error:", error);
+                        showError(`Failed to start ${isVideoCall ? 'video' : 'audio'} call.`);
+                    }
+                );
+            }
+
+            // Scroll the message container to the bottom
+            function scrollToBottom() {
+                messageList.scrollTop = messageList.scrollHeight;
+            }
+
+            // Display error message
+            function showError(message) {
+                alert(message);
+            }
+        });
+    </script>
+
+    <style>
+        /* Chat styles */
+        .message-list {
+            height: 350px;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            clear: both;
+        }
+
+        .message-mine {
+            float: right;
+            background-color: #dcf8c6;
+            border-radius: 10px 0 10px 10px;
+            padding: 10px;
+        }
+
+        .message-others {
+            float: left;
+            background-color: #f1f1f1;
+            border-radius: 0 10px 10px 10px;
+            padding: 10px;
+        }
+
+        .message-system {
+            clear: both;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .system-message-content {
+            display: inline-block;
+            background-color: #e6f7ff;
+            border-radius: 15px;
+            padding: 5px 15px;
+            color: #0066cc;
+            font-size: 0.9rem;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: #777;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
+
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .user-name {
+            flex: 1;
+        }
+
+        .user-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-online {
+            background-color: #28a745;
+        }
+
+        .status-offline {
+            background-color: #dc3545;
+        }
+
+        /* Call modal styles */
+        .call-container {
+            position: relative;
+            min-height: 300px;
+            background-color: #f0f0f0;
+        }
+
+        .remote-video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            background-color: #222;
+        }
+
+        #remote-video {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            object-fit: cover;
+            background-color: #222;
+        }
+
+        .local-video-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            height: 100px;
+            border: 2px solid white;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #local-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #444;
+        }
+
+        .audio-call-container {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .caller-avatar {
+            color: #007bff;
+        }
+
+        #call-timer {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Participants count indicator */
+        .participants-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        /* Incoming call notification */
+        .incoming-call-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1060;
+            transform: translateX(350px);
+            transition: transform 0.3s ease;
+        }
+
+            .incoming-call-notification.active {
+                transform: translateX(0);
+            }
+
+        .incoming-call-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .incoming-call-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+            .incoming-call-header i {
+                margin-right: 10px;
+                font-size: 1.2rem;
+            }
+
+        .incoming-call-body {
+            padding: 15px;
+        }
+
+        .caller-info {
+            display: flex;
+            align-items: center;
+        }
+
+            .caller-info .caller-avatar {
+                font-size: 2.5rem;
+                margin-right: 15px;
+            }
+
+        .caller-details h5 {
+            margin-bottom: 5px;
+        }
+
+        .caller-details p {
+            color: #666;
+            margin: 0;
+        }
+
+        .incoming-call-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+        }
+
+            .incoming-call-actions .btn {
+                flex: 1;
+                margin: 0 5px;
+            }
+
+        /* Ongoing call banner */
+        .ongoing-call-banner {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1050;
+            transition: transform 0.3s ease;
+            min-width: 300px;
+        }
+
+            .ongoing-call-banner.active {
+                transform: translateX(-50%) translateY(0);
+            }
+
+        .ongoing-call-info {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Toast styling */
+        .toast-container {
+            z-index: 1070;
+        }
+    </style>
+}
