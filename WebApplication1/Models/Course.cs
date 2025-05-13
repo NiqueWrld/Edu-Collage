@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Reflection;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebApplication1.Models
 {
@@ -20,5 +20,8 @@ namespace WebApplication1.Models
 
         [Range(1, 6)]
         public int DurationYears { get; set; }
+
+        // Navigation property for related Modules
+        public ICollection<Module> Modules { get; set; } = new List<Module>();
     }
 }
