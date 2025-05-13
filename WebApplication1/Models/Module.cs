@@ -14,6 +14,9 @@ namespace WebApplication1.Models
         public string ModuleCode { get; set; }
 
         [Required]
+        public string Description { get; set; }
+
+        [Required]
         public string Year { get; set; }
 
         public SemesterNumber Semester { get; set; }

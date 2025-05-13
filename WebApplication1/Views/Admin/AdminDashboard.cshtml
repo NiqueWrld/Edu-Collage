@@ -1,0 +1,412 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p class="mt-1 text-sm sm:text-base text-gray-500">Welcome back, @User.Identity?.Name</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-full p-3">
+                        <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500 truncate">Total Courses</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">42</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-green-600">+12%</span>
+                        <span class="text-xs text-gray-500">vs last semester</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-5 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-100 rounded-full p-3">
+                        <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500 truncate">Total Students</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">1,257</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-green-600">+18%</span>
+                        <span class="text-xs text-gray-500">vs last semester</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-purple-100 rounded-full p-3">
+                        <svg class="h-6 w-6 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500 truncate">Applications</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">38</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-yellow-600">+5%</span>
+                        <span class="text-xs text-gray-500">vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-5 border-l-4 border-yellow-500">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-yellow-100 rounded-full p-3">
+                        <svg class="h-6 w-6 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-5">
+                        <p class="text-sm font-medium text-gray-500 truncate">Lectures This Week</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">24</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-medium text-red-600">-3%</span>
+                        <span class="text-xs text-gray-500">vs last week</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Admin Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Course Management -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-blue-50">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">Course Management</h3>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Courses" class="text-sm text-blue-600 hover:text-blue-900">View all →</a>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center">
+                                    <span class="text-blue-800 font-semibold">CS</span>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">Computer Science Fundamentals</p>
+                                    <p class="text-xs text-gray-500">24 students enrolled</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-purple-100 rounded-md flex items-center justify-center">
+                                    <span class="text-purple-800 font-semibold">DS</span>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm font-medium text-gray-900">Data Science Analytics</p>
+                                    <p class="text-xs text-gray-500">18 students enrolled</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add New Course
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Admissions -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-green-50">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-green-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">Student Admissions</h3>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Admissions" class="text-sm text-green-600 hover:text-green-900">View all →</a>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex justify-between">
+                            <div class="text-center p-3 bg-green-50 rounded-lg">
+                                <p class="text-xl font-bold text-green-700">32</p>
+                                <p class="text-xs text-gray-500">New Applications</p>
+                            </div>
+                            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                                <p class="text-xl font-bold text-blue-700">18</p>
+                                <p class="text-xs text-gray-500">Interviews</p>
+                            </div>
+                            <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                                <p class="text-xl font-bold text-yellow-700">8</p>
+                                <p class="text-xs text-gray-500">Pending Review</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Applications</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                            <span class="text-xs text-indigo-800 font-semibold">JD</span>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium text-gray-900">John Doe</p>
+                                            <p class="text-xs text-gray-500">Computer Science</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-xs text-gray-500">2 hours ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            Process Applications
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Library Management -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-purple-50">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-purple-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">Library Management</h3>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Library" class="text-sm text-purple-600 hover:text-purple-900">View all →</a>
+                </div>
+                <div class="p-6">
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="text-sm font-medium text-gray-700">Resources</p>
+                            <p class="text-sm text-gray-500">Usage</p>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-purple-600 h-2.5 rounded-full" style="width: 72%"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-xs text-gray-500">
+                            <span>3,614 resources</span>
+                            <span>72% active use</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                <p class="text-sm text-gray-900">E-Books</p>
+                            </div>
+                            <span class="text-sm text-gray-500">1,245</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="h-5 w-5 text-gray-400 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                <p class="text-sm text-gray-900">Video Tutorials</p>
+                            </div>
+                            <span class="text-sm text-gray-500">865</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add Resources
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Lectures Section -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-yellow-50">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-yellow-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">Lecture Schedule</h3>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Lecture" class="text-sm text-yellow-600 hover:text-yellow-900">View all →</a>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex items-center bg-gray-50 rounded-md p-3">
+                            <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-md flex items-center justify-center">
+                                <span class="text-xs font-medium text-indigo-700">10:00<br/>AM</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Introduction to AI</p>
+                                <div class="flex items-center mt-1">
+                                    <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <p class="text-xs text-gray-500 ml-1">Dr. Sarah Johnson</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center bg-gray-50 rounded-md p-3">
+                            <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-md flex items-center justify-center">
+                                <span class="text-xs font-medium text-green-700">2:30<br/>PM</span>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-900">Database Systems</p>
+                                <div class="flex items-center mt-1">
+                                    <svg class="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <p class="text-xs text-gray-500 ml-1">Prof. Michael Chen</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Schedule New Lecture
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Applications Dashboard -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-red-50">
+                    <div class="flex items-center">
+                        <svg class="h-6 w-6 text-red-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900">Applications</h3>
+                    </div>
+                    <a asp-controller="Admin" asp-action="Applications" class="text-sm text-red-600 hover:text-red-900">View all →</a>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center justify-center">
+                        <div class="h-40 w-40">
+                            <canvas id="applicationChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-green-50 rounded-lg p-3">
+                            <span class="block text-xl font-bold text-green-700">24</span>
+                            <span class="text-xs text-gray-500">Approved</span>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-3">
+                            <span class="block text-xl font-bold text-yellow-700">8</span>
+                            <span class="text-xs text-gray-500">Pending</span>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-3">
+                            <span class="block text-xl font-bold text-red-700">6</span>
+                            <span class="text-xs text-gray-500">Rejected</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <button type="button" class="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Review Applications
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var ctx = document.getElementById('applicationChart').getContext('2d');
+            var applicationChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Approved', 'Pending', 'Rejected'],
+                    datasets: [{
+                        data: [24, 8, 6],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        });
+    </script>
+}

@@ -5,13 +5,13 @@
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class initial3 : Migration
+    public partial class init2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "ModuleCode",
+                name: "Description",
                 table: "Modules",
                 type: "nvarchar(max)",
                 nullable: false,
@@ -22,7 +22,7 @@ namespace WebApplication1.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ModuleCode",
+                name: "Description",
                 table: "Modules");
         }
     }

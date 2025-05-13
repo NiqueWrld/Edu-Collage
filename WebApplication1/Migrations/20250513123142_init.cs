@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -200,6 +200,8 @@ namespace WebApplication1.Migrations
                     ModuleId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ModuleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModuleCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Year = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Semester = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -309,13 +311,25 @@ namespace WebApplication1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ApplicationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    ReviewedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ApprovedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    RejectedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FirstName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CourseId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CourseId1 = table.Column<int>(type: "int", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    CourseId = table.Column<int>(type: "int", nullable: false),
                     StudyYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdentificationDocumentPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AcademicRecordsPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MotivationLetterPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ApplicationFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PaymentId = table.Column<int>(type: "int", nullable: false),
+                    PaymentId = table.Column<int>(type: "int", nullable: true),
+                    PaymentRequired = table.Column<bool>(type: "bit", nullable: false),
                     IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AdminComments = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    ProcessedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     StudentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -328,8 +342,13 @@ namespace WebApplication1.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Applications_Courses_CourseId1",
-                        column: x => x.CourseId1,
+                        name: "FK_Applications_AspNetUsers_ProcessedByUserId",
+                        column: x => x.ProcessedByUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Applications_Courses_CourseId",
+                        column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -347,9 +366,9 @@ namespace WebApplication1.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Applications_CourseId1",
+                name: "IX_Applications_CourseId",
                 table: "Applications",
-                column: "CourseId1");
+                column: "CourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Applications_IdentityUserId",
@@ -360,6 +379,11 @@ namespace WebApplication1.Migrations
                 name: "IX_Applications_PaymentId",
                 table: "Applications",
                 column: "PaymentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Applications_ProcessedByUserId",
+                table: "Applications",
+                column: "ProcessedByUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Applications_StudentId",

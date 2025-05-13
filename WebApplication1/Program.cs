@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Braintree;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 
@@ -16,6 +17,17 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+
+builder.Services.AddSingleton<BraintreeGateway>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    return new BraintreeGateway(
+        configuration["Braintree:Environment"],
+        configuration["Braintree:MerchantId"],
+        configuration["Braintree:PublicKey"],
+        configuration["Braintree:PrivateKey"]
+    );
+});
 
 var app = builder.Build();
 

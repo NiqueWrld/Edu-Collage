@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using WebApplication1.Models;
 
 namespace WebApplication1.Data
 {
@@ -83,6 +84,29 @@ namespace WebApplication1.Data
                     await userManager.AddToRoleAsync(lecturerUser, "Lecturer");
                 }
             }
+
+
+            // Seed courses and modules if they don't exist
+            if (!dbContext.Courses.Any())
+            {
+                var course1 = new Course
+                {
+                    Faculty = "Engineering",
+                    CourseName = "Computer Science",
+                    CourseCode = "CS101",
+                    Description = "Introduction to Computer Science",
+                    DurationYears = 4,
+                    Modules = new List<Module>
+                    {
+                        new Module { ModuleName = "Programming 101", ModuleCode = "CS101A", Description = "Basic Programming Concepts" , Year = "1" },
+                        new Module { ModuleName = "Data Structures", ModuleCode = "CS102A", Description = "Introduction to Data Structures", Year = "1" }
+                    }
+                };
+
+                dbContext.Courses.Add(course1);
+                await dbContext.SaveChangesAsync();
+            }
+
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿@{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
+    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout != null)
     {
         Layout = parentLayout.ToString();
     }
@@ -9,17 +9,51 @@
     }
 }
 
-<h1>Manage your account</h1>
-
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-md-3">
-            <partial name="_ManageNav" />
+<div class="bg-gray-50 min-h-screen py-10">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-10">
+            <div class="flex items-center justify-between">
+                <h1 class="text-3xl font-bold text-gray-900">Account Settings</h1>
+                <span class="inline-flex items-center px-4 py-1.5 rounded-full text-base font-medium bg-green-100 text-green-800">
+                    <svg class="-ml-1 mr-2 h-3 w-3 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                        <circle cx="4" cy="4" r="3" />
+                    </svg>
+                    Active
+                </span>
+            </div>
+            <p class="mt-2 text-base text-gray-500">Manage your profile, preferences, and security settings</p>
         </div>
-        <div class="col-md-9">
-            @RenderBody()
+
+        <!-- Main Content -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="flex flex-col lg:flex-row">
+                <!-- Left Sidebar Navigation -->
+                <div class="lg:w-72 bg-white border-r border-gray-200">
+                    <div class="py-6 px-4 bg-indigo-50 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="h-12 w-12 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold">
+                                @(User.Identity?.Name?[0].ToString().ToUpper() ?? "U")
+                            </div>
+                            <div class="ml-3 overflow-hidden">
+                                <p class="text-base font-medium text-gray-900 truncate">@User.Identity?.Name</p>
+                                <p class="text-sm text-gray-500">View Profile</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="py-4">
+                        <partial name="_ManageNav" />
+                    </div>
+                </div>
+
+                <!-- Right Content Area -->
+                <div class="flex-1 overflow-hidden">
+                    <div class="p-8">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -17,7 +17,7 @@
 
         <!-- Application Form -->
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <form asp-action="ApplyAdmission" enctype="multipart/form-data">
+            <form asp-action="Create" enctype="multipart/form-data">
                 <div class="px-6 py-5 border-b border-gray-200">
                     <div class="flex justify-between items-center">
                         <h2 class="text-lg font-medium text-gray-900">Application Details</h2>
@@ -35,7 +35,7 @@
                     <div asp-validation-summary="ModelOnly" class="bg-red-50 border border-red-200 text-sm text-red-600 px-4 py-3 rounded mb-6"></div>
 
                     <!-- Application Information -->
-
+     
                     <div class="pt-3">
                         <h3 class="text-base font-medium text-gray-900 mb-4">Personal Information</h3>
                         <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
@@ -110,7 +110,7 @@
                         <h3 class="text-base font-medium text-gray-900 mb-4">Document Paths</h3>
                         <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
                             <div class="sm:col-span-6">
-                                <label asp-for="IdentificationDocumentPath" class="block text-sm font-medium text-gray-700">ID Document</label>
+                                <label asp-for="IdentificationDocumentPath" class="block text-sm font-medium text-gray-700">ID Document Path</label>
                                 <div class="mt-1">
                                     <input asp-for="IdentificationDocumentPath" type="file" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="IdentificationDocumentPath" class="text-xs text-red-500"></span>
@@ -118,7 +118,7 @@
                             </div>
 
                             <div class="sm:col-span-6">
-                                <label asp-for="AcademicRecordsPath" class="block text-sm font-medium text-gray-700">Academic Records</label>
+                                <label asp-for="AcademicRecordsPath" class="block text-sm font-medium text-gray-700">Academic Records Path</label>
                                 <div class="mt-1">
                                     <input asp-for="AcademicRecordsPath" type="file" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="AcademicRecordsPath" class="text-xs text-red-500"></span>
@@ -126,7 +126,7 @@
                             </div>
 
                             <div class="sm:col-span-6">
-                                <label asp-for="MotivationLetterPath" class="block text-sm font-medium text-gray-700">Motivation Letter (Optional)</label>
+                                <label asp-for="MotivationLetterPath" class="block text-sm font-medium text-gray-700">Motivation Letter Path</label>
                                 <div class="mt-1">
                                     <input asp-for="MotivationLetterPath" type="file" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="MotivationLetterPath" class="text-xs text-red-500"></span>

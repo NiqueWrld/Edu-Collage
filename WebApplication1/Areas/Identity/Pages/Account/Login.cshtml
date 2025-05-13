@@ -6,48 +6,97 @@
     ViewData["Title"] = "Log in";
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
-            <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
-                </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
-                </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
-                </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </form>
-        </section>
-    </div>
+<div class="flex justify-center items-center min-h-screen py-2 px-4 ">
+    <div class="w-full max-w-md">
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-3">Welcome Back</h2>
+            <p class="text-gray-600">Sign in to continue your journey</p>
+        </div>
 
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all hover:shadow-xl">
+            <div class="p-8">
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="mb-4 text-sm text-red-600 bg-red-50 rounded-lg p-3 border border-red-200" role="alert"></div>
+
+                    <div class="mb-5">
+                        <label asp-for="Input.Email" class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address
+                        </label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                </svg>
+                            </div>
+                            <input asp-for="Input.Email" autocomplete="username" aria-required="true"
+                                   class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-4 py-3"
+                                   placeholder="name@example.com" />
+                        </div>
+                        <span asp-validation-for="Input.Email" class="mt-1 text-xs text-red-500 block"></span>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <label asp-for="Input.Password" class="block text-sm font-medium text-gray-700">
+                                Password
+                            </label>
+                            <div class="text-sm">
+                                <a id="forgot-password" asp-page="./ForgotPassword" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-150">
+                                    Forgot password?
+                                </a>
+                            </div>
+                        </div>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <input asp-for="Input.Password" autocomplete="current-password" aria-required="true"
+                                   class="pl-10 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm px-4 py-3"
+                                   placeholder="••••••••" />
+                        </div>
+                        <span asp-validation-for="Input.Password" class="mt-1 text-xs text-red-500 block"></span>
+                    </div>
+
+                    <div class="flex items-center mb-6">
+                        <input class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                               asp-for="Input.RememberMe" />
+                        <label asp-for="Input.RememberMe" class="ml-2 block text-sm text-gray-700">
+                            Remember me
+                        </label>
+                    </div>
+
+                    <div>
+                        <button id="login-submit" type="submit"
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium
+                            text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                            transition-all duration-200 transform hover:-translate-y-1 shadow-md">
+                            Sign in
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="px-8 py-5 bg-gray-50 text-center border-t border-gray-100">
+                <p class="text-sm text-gray-600 mb-3">
+                    New user?
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 ml-1 transition-colors duration-150">
+                        Create an account
+                    </a>
+                </p>
+                <div class="text-xs text-gray-500">
+                    <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-indigo-600 hover:underline transition-colors duration-150">
+                        Resend email confirmation
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center text-xs text-gray-500">
+            <p>Protected by industry-leading security practices</p>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

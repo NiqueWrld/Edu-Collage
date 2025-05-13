@@ -1,0 +1,130 @@
+﻿@model WebApplication1.Models.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Proceed to Payment";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-bold text-gray-900">Proceed to Payment</h1>
+        <p class="mt-2 text-sm text-gray-500">Securely enter your card details below to complete the payment.</p>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg font-medium text-gray-900">Payment Details</h3>
+                <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2 mt-4">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Course Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900">@Model.CourseName</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Application Fee</dt>
+                        <dd class="mt-1 text-sm text-gray-900">$@Model.ApplicationFee.ToString("F2")</dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="px-4 py-4 sm:px-6">
+                <form id="payment-form" asp-action="CompletePayment" method="post">
+                    <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
+
+                    <!-- Hosted Fields Container -->
+                    <div id="card-container" class="space-y-4">
+                        <div>
+                            <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
+                            <div id="card-number" class="hosted-field-input"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="expiration-date" class="block text-sm font-medium text-gray-700">Expiration Date</label>
+                                <div id="expiration-date" class="hosted-field-input"></div>
+                            </div>
+                            <div>
+                                <label for="cvv" class="block text-sm font-medium text-gray-700">CVV</label>
+                                <div id="cvv" class="hosted-field-input"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button id="submit-button" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            Pay $@Model.ApplicationFee.ToString("F2")
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/client.min.js"></script>
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/hosted-fields.min.js"></script>
+    <script>
+        var form = document.querySelector('#payment-form');
+        var submitButton = document.querySelector('#submit-button');
+        var clientToken = '@ViewData["ClientToken"]';
+
+        braintree.client.create({
+            authorization: clientToken
+        }, function (err, clientInstance) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            braintree.hostedFields.create({
+                client: clientInstance,
+                styles: {
+                    'input': {
+                        'font-size': '14px',
+                        'font-family': 'Arial, sans-serif',
+                        'color': '#333'
+                    },
+                    ':focus': {
+                        'color': '#000'
+                    }
+                },
+                fields: {
+                    number: {
+                        selector: '#card-number',
+                        placeholder: '4111 1111 1111 1111'
+                    },
+                    expirationDate: {
+                        selector: '#expiration-date',
+                        placeholder: 'MM/YY'
+                    },
+                    cvv: {
+                        selector: '#cvv',
+                        placeholder: '123'
+                    }
+                }
+            }, function (err, hostedFieldsInstance) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    hostedFieldsInstance.tokenize(function (err, payload) {
+                        if (err) {
+                            console.error(err);
+                            alert('Payment failed: ' + err.message);
+                            return;
+                        }
+
+                        // Add the nonce to the form and submit
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'paymentNonce';
+                        input.value = payload.nonce;
+
+                        form.appendChild(input);
+                        form.submit();
+                    });
+                });
+            });
+        });
+    </script>
+}

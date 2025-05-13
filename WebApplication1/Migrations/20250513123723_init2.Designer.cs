@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Data;
 
@@ -11,9 +12,11 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(NexelContext))]
-    partial class NexelContextModelSnapshot : ModelSnapshot
+    [Migration("20250513123723_init2")]
+    partial class init2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,6 +245,7 @@ namespace WebApplication1.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("AdminComments")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -279,6 +283,7 @@ namespace WebApplication1.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("MotivationLetterPath")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("PaymentId")
@@ -292,6 +297,7 @@ namespace WebApplication1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProcessedByUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("RejectedDate")
@@ -603,7 +609,8 @@ namespace WebApplication1.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "ProcessedByUser")
                         .WithMany()
                         .HasForeignKey("ProcessedByUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("WebApplication1.Models.Student", null)
                         .WithMany("Applications")
