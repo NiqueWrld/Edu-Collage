@@ -65,7 +65,7 @@ namespace WebApplication1.Data
 
             // Seed lecturer user
             string lecturerEmail = "lecturer@nexel.com";
-            string lecturerPassword = "Driver@123";
+            string lecturerPassword = "Lecture@123";
 
             var existingLecturerUser = await userManager.FindByEmailAsync(lecturerEmail);
             if (existingLecturerUser == null)

@@ -74,7 +74,8 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            ViewBag.CourseId = id;
+            ViewBag.CourseId = course.Id;
+            ViewBag.CourseYears = course.DurationYears;
 
             return View();
         }
@@ -86,13 +87,17 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
-            var module = await _context.Modules.FindAsync(id);
+            var module = await _context.Modules
+                .Include(m => m.Course)
+                .FirstOrDefaultAsync(m => m.CourseId == id);
+
             if (module == null)
             {
                 return NotFound();
             }
 
             ViewBag.CourseId = module.CourseId;
+            ViewBag.CourseYears = module.Course.DurationYears;
 
             return View(module);
         }

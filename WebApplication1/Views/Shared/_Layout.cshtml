@@ -7,104 +7,132 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WebApplication1</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - NEXEL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WebApplication1</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+<body class="flex flex-col min-h-screen bg-gray-50">
+    <header class="bg-white shadow">
+        <nav class="px-4 py-2.5 mx-auto max-w-7xl">
+            <div class="flex flex-wrap justify-between items-center">
+                <a class="flex items-center font-medium text-lg text-gray-900" asp-area="" asp-controller="Home" asp-action="Index">NEXEL</a>
+                <button data-collapse-toggle="mobile-menu" type="button"
+                        class="inline-flex items-center p-2 ml-3 text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
+                        aria-controls="mobile-menu" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <!-- Student-Specific Links -->
-                        @if (User.IsInRole("Student"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Student" asp-action="ApplyAdmission">Apply for Admission</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Student" asp-action="TrackApplication">Track Application</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Payment" asp-action="Index">Make Payments</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Library" asp-action="BookResources">Book Library Resources</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Materials" asp-action="Index">Study Materials</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Classes" asp-action="Index">Join Online Classes</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Performance" asp-action="Index">Track Performance</a>
-                            </li>
-                        }
-                        else if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Courses">Course Management</a>
-                            </li>
-                        }
-                    </ul>
+                <div class="hidden w-full md:block md:w-auto" id="mobile-menu">
+                    <div class="flex flex-col mt-4 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium">
+                        <div class="flex-grow">
+                            <ul class="flex flex-col md:flex-row md:space-x-4">
+                                <li>
+                                    <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                       asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                                </li>
+                                <li>
+                                    <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                       asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                                </li>
+                                <!-- Student-Specific Links -->
+                                @if (User.IsInRole("Student"))
+                                {
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Student" asp-action="ApplyAdmission">Apply for Admission</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Student" asp-action="TrackApplication">Track Application</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Payment" asp-action="Index">Make Payments</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Library" asp-action="BookResources">Book Library Resources</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Materials" asp-action="Index">Study Materials</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Classes" asp-action="Index">Join Online Classes</a>
+                                    </li>
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Performance" asp-action="Index">Track Performance</a>
+                                    </li>
+                                }
+                                else if (User.IsInRole("Admin"))
+                                {
+                                    <li>
+                                        <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                           asp-area="" asp-controller="Admin" asp-action="Courses">Course Management</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
 
-                    <!-- User Authentication Links -->
-                    <ul class="navbar-nav">
-                        @if (SignInManager.IsSignedIn(User))
-                        {
-                            <li class="nav-item">
-                                <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
-                                    Hello @UserManager.GetUserName(User)!
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                                    <button id="logout" type="submit" class="nav-link btn btn-link text-dark border-0">Logout</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                            </li>
-                        }
-                    </ul>
+                        <!-- User Authentication Links -->
+                        <div class="mt-3 md:mt-0">
+                            @if (SignInManager.IsSignedIn(User))
+                            {
+                                <div class="flex flex-col md:flex-row md:items-center md:space-x-3">
+                                    <a id="manage" class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                       asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
+                                        Hello @UserManager.GetUserName(User)!
+                                    </a>
+                                    <form id="logoutForm" class="inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                                        <button id="logout" type="submit" class="py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0">
+                                            Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex flex-col md:flex-row md:items-center md:space-x-3">
+                                    <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                       id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                                    <a class="block py-2 px-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0"
+                                       id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                                </div>
+                            }
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="flex-grow container mx-auto px-4 py-8">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - WebApplication1 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="mt-auto py-6 bg-white border-t border-gray-200">
+        <div class="container mx-auto px-4 text-gray-500 text-sm">
+            &copy; 2025 - NEXEL - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-blue-600 hover:underline">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function () {
+            const button = document.querySelector('[data-collapse-toggle="mobile-menu"]');
+            const menu = document.getElementById('mobile-menu');
+
+            button.addEventListener('click', function () {
+                menu.classList.toggle('hidden');
+            });
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
