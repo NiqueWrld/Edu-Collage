@@ -1,19 +1,19 @@
 ﻿@model WebApplication1.Models.Module
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Edit";
 }
 
-<h1>Create</h1>
+<h1>Edit</h1>
 
 <h4>Module</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="AddModule">
+        <form asp-action="EditModule">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input asp-for="CourseId" class="form-control" value="@ViewBag.CourseId" hidden />
-
+            <input type="hidden" asp-for="ModuleId" />
+            <input type="hidden" asp-for="CourseId" />
             <div class="form-group">
                 <label asp-for="ModuleName" class="control-label"></label>
                 <input asp-for="ModuleName" class="form-control" />
@@ -35,21 +35,20 @@
             </div>
             <div class="form-group">
                 <label asp-for="Year" class="control-label"></label>
-                <input asp-for="Year" class="form-control"/>
+                <input asp-for="Year" class="form-control" />
+                <span asp-validation-for="Year" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="CourseDetails" asp-route-id="@ViewBag.CourseId">Back</a>
+    <a asp-action="CourseDetails" asp-route-id="@Model.CourseId">Back</a>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

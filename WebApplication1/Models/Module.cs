@@ -9,6 +9,13 @@ namespace WebApplication1.Models
         [Required]
         public string ModuleName { get; set; }
 
+
+        [Required]
+        public string ModuleCode { get; set; }
+
+        [Required]
+        public string Year { get; set; }
+
         public SemesterNumber Semester { get; set; }
 
         public enum SemesterNumber

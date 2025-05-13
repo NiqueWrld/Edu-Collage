@@ -122,40 +122,8 @@ namespace WebApplication1.Controllers
             return View(@module);
         }
 
-        // GET: Modules/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var @module = await _context.Modules
-                .Include(m => m.Course)
-                .FirstOrDefaultAsync(m => m.ModuleId == id);
-            if (@module == null)
-            {
-                return NotFound();
-            }
-
-            return View(@module);
-        }
-
-        // POST: Modules/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var @module = await _context.Modules.FindAsync(id);
-            if (@module != null)
-            {
-                _context.Modules.Remove(@module);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
+    
+       
         private bool ModuleExists(int id)
         {
             return _context.Modules.Any(e => e.ModuleId == id);
