@@ -1,0 +1,97 @@
+﻿@model IEnumerable<WebApplication1.Models.ResourceBooking>
+
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">My Bookings</h1>
+            <p class="mt-2 text-sm text-gray-500">View and manage your current library resource bookings</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-6 rounded-md bg-green-50 p-4 border border-green-200">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="flex space-x-2 mb-6">
+            <a href="@Url.Action("BookResources", "Library")" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Book More Resources
+            </a>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            @if (!Model.Any())
+            {
+                <div class="p-6 text-center">
+                    <p class="text-gray-500">You don't have any active bookings.</p>
+                </div>
+            }
+            else
+            {
+                <ul class="divide-y divide-gray-200">
+                    @foreach (var booking in Model)
+                    {
+                        <li class="p-4 sm:px-6 sm:py-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">
+                                        @booking.Resource.Name
+                                        <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-@(booking.Resource.Type == ResourceType.Book ? "indigo" : "blue")-100 text-@(booking.Resource.Type == ResourceType.Book ? "indigo" : "blue")-800">
+                                            @booking.Resource.Type
+                                        </span>
+
+                                        @if (booking.Status == BookingStatus.Overdue)
+                                        {
+                                            <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                Overdue
+                                            </span>
+                                        }
+                                    </h3>
+
+                                    @if (booking.Resource.Type == ResourceType.Book)
+                                    {
+                                        <p class="mt-1 text-sm text-gray-500">Author: @booking.Resource.Author</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="mt-1 text-sm text-gray-500">Location: @booking.Resource.Location</p>
+                                    }
+
+                                    <div class="mt-2">
+                                        <p class="text-sm text-gray-500">Borrowed: @booking.BookingDate.ToString("yyyy-MM-dd HH:mm")</p>
+                                        <p class="text-sm text-gray-500">Due: @booking.DueDate.ToString("yyyy-MM-dd HH:mm")</p>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(booking.ReturnPin))
+                                {
+                                    <a href="@Url.Action("ReturnResource", "Library", new { bookingId = booking.BookingId })" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        Return Item
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span class="text-sm text-gray-500">Ask librarian for return PIN</span>
+                                }
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>

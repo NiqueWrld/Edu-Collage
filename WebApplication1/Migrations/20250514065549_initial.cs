@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace WebApplication1.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -65,6 +65,26 @@ namespace WebApplication1.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "LibraryResources",
+                columns: table => new
+                {
+                    ResourceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Author = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ISBN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Specifications = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Location = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsAvailable = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LibraryResources", x => x.ResourceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -201,6 +221,7 @@ namespace WebApplication1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ModuleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModuleCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Year = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Semester = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false)
@@ -213,6 +234,37 @@ namespace WebApplication1.Migrations
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ResourceBookings",
+                columns: table => new
+                {
+                    BookingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ResourceId = table.Column<int>(type: "int", nullable: false),
+                    IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    BookingDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReturnDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ReturnPin = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ResourceBookings", x => x.BookingId);
+                    table.ForeignKey(
+                        name: "FK_ResourceBookings_AspNetUsers_IdentityUserId",
+                        column: x => x.IdentityUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ResourceBookings_LibraryResources_ResourceId",
+                        column: x => x.ResourceId,
+                        principalTable: "LibraryResources",
+                        principalColumn: "ResourceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -323,13 +375,12 @@ namespace WebApplication1.Migrations
                     StudyYear = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IdentificationDocumentPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     AcademicRecordsPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MotivationLetterPath = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MotivationLetterPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ApplicationFee = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     PaymentId = table.Column<int>(type: "int", nullable: true),
-                    PaymentRequired = table.Column<bool>(type: "bit", nullable: false),
                     IdentityUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    AdminComments = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    ProcessedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AdminComments = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    ProcessedByUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     StudentId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -465,6 +516,16 @@ namespace WebApplication1.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ResourceBookings_IdentityUserId",
+                table: "ResourceBookings",
+                column: "IdentityUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ResourceBookings_ResourceId",
+                table: "ResourceBookings",
+                column: "ResourceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Students_IdentityUserId",
                 table: "Students",
                 column: "IdentityUserId");
@@ -501,6 +562,9 @@ namespace WebApplication1.Migrations
                 name: "Performances");
 
             migrationBuilder.DropTable(
+                name: "ResourceBookings");
+
+            migrationBuilder.DropTable(
                 name: "Payments");
 
             migrationBuilder.DropTable(
@@ -508,6 +572,9 @@ namespace WebApplication1.Migrations
 
             migrationBuilder.DropTable(
                 name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "LibraryResources");
 
             migrationBuilder.DropTable(
                 name: "Students");

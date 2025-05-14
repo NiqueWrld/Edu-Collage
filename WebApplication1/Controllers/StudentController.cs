@@ -116,7 +116,20 @@ namespace WebApplication1.Controllers
 
             if (result.IsSuccess())
             {
-                
+                // Create a new Payment record
+                var payment = new Payment
+                {
+                    PaymentDate = DateTime.UtcNow,
+                    Amount = application.ApplicationFee,
+                    PaymentMethod = "Credit Card", // You can customize this based on the payment method used
+                    Status = "Completed",
+                    IdentityUserId = application.IdentityUserId // Assuming `IdentityUserId` is a field in Application
+                };
+
+                // Save the Payment record to the database
+                _context.Payments.Add(payment);
+
+                // Update the application to reflect payment status
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Payment completed successfully!";
@@ -192,6 +205,11 @@ namespace WebApplication1.Controllers
             return RedirectToAction(nameof(TrackApplications));
         }
 
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+
         public async Task<IActionResult> TrackApplications()
         {
             try
@@ -219,35 +237,6 @@ namespace WebApplication1.Controllers
             }
         }
 
-        private async Task<string> UploadToCloudinary(IFormFile file, string publicId)
-        {
-            if (file == null || file.Length == 0)
-                throw new ArgumentException("File is empty or null");
-
-            if (_cloudinary == null)
-                throw new InvalidOperationException("Cloudinary service is not available");
-
-            using (var stream = file.OpenReadStream())
-            {
-                var uploadParams = new ImageUploadParams
-                {
-                    File = new FileDescription(file.FileName, stream),
-                    PublicId = publicId,
-                    Folder = "nexel_app",
-                    UseFilename = true,
-                    UniqueFilename = true,
-                    Overwrite = true
-                };
-
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
-                if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    return uploadResult.SecureUrl.ToString();
-                }
-
-                throw new Exception($"Upload failed: {uploadResult.Error?.Message ?? "Unknown error"}");
-            }
-        }
+       
     }
 }

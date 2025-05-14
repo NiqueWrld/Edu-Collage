@@ -22,26 +22,44 @@ namespace WebApplication1.Data
                 }
             }
 
-            // Seed admin user
-            string adminEmail = "admin@nexel.com";
-            string adminPassword = "Admin@123";
+            // Seed admin users
+            var adminUsers = new List<(string Email, string Password)>
+{
+    ("admin1@nexel.com", "Admin@123"),
+    ("admin2@nexel.com", "Admin@123"),
+    ("admin3@nexel.com", "Admin@123"),
+    ("admin4@nexel.com", "Admin@123"),
+    ("admin5@nexel.com", "Admin@123")
+};
 
-            var existingAdminUser = await userManager.FindByEmailAsync(adminEmail);
-            if (existingAdminUser == null)
+            foreach (var (email, password) in adminUsers)
             {
-                var adminUser = new IdentityUser
+                var existingAdminUser = await userManager.FindByEmailAsync(email);
+                if (existingAdminUser == null)
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    EmailConfirmed = true
-                };
+                    var adminUser = new IdentityUser
+                    {
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true
+                    };
 
-                var adminResult = await userManager.CreateAsync(adminUser, adminPassword);
-                if (adminResult.Succeeded)
-                {
-                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    var adminResult = await userManager.CreateAsync(adminUser, password);
+                    if (adminResult.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(adminUser, "Admin");
+                    }
+                    else
+                    {
+                        // Optional: log or handle failure
+                        foreach (var error in adminResult.Errors)
+                        {
+                            Console.WriteLine($"Error creating {email}: {error.Description}");
+                        }
+                    }
                 }
             }
+
 
             // Seed student user
             string studentEmail = "student@nexel.com";

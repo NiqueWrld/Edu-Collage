@@ -1,0 +1,134 @@
+﻿@model WebApplication1.Models.ViewModels.BookResourcesViewModel
+
+@{
+    ViewData["Title"] = "Book Library Resources";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Book Library Resources</h1>
+            <p class="mt-2 text-sm text-gray-500">Browse and reserve books or computers from the library</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-6 rounded-md bg-green-50 p-4 border border-green-200">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">@TempData["ErrorMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="flex space-x-2 mb-6">
+            <a href="@Url.Action("MyBookings", "Library")" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                View My Bookings
+            </a>
+        </div>
+
+        <!-- Books Section -->
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Available Books</h2>
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            @if (!Model.Books.Any())
+            {
+                <div class="p-6 text-center">
+                    <p class="text-gray-500">No books are currently available for booking.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                    @foreach (var book in Model.Books)
+                    {
+                        <div class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-lg font-medium text-gray-900">@book.Name</h3>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Available
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Author: @book.Author</p>
+                                <p class="text-sm text-gray-500">ISBN: @(string.IsNullOrEmpty(book.ISBN) ? "N/A" : book.ISBN)</p>
+                                <p class="mt-2 text-sm text-gray-500 line-clamp-2">@book.Description</p>
+
+                                <div class="mt-4">
+                                    <form asp-action="BookResource" method="post">
+                                        <input type="hidden" name="resourceId" value="@book.ResourceId" />
+                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                            Book for 7 Days
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Computers Section -->
+        <h2 class="text-xl font-bold text-gray-900 mb-4">Available Computers</h2>
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            @if (!Model.Computers.Any())
+            {
+                <div class="p-6 text-center">
+                    <p class="text-gray-500">No computers are currently available for booking.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                    @foreach (var computer in Model.Computers)
+                    {
+                        <div class="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <div class="p-4">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-lg font-medium text-gray-900">@computer.Name</h3>
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Available
+                                    </span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-500">Location: @computer.Location</p>
+                                <p class="text-sm text-gray-500">Specs: @(string.IsNullOrEmpty(computer.Specifications) ? "N/A" : computer.Specifications)</p>
+                                <p class="mt-2 text-sm text-gray-500 line-clamp-2">@computer.Description</p>
+
+                                <div class="mt-4">
+                                    <form asp-action="BookResource" method="post">
+                                        <input type="hidden" name="resourceId" value="@computer.ResourceId" />
+                                        <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            Book for 1 Hour
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

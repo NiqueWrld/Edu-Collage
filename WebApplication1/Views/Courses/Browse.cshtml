@@ -1,0 +1,199 @@
+﻿@model WebApplication1.Models.ViewModels.CoursesByFacultyViewModel
+
+@{
+    ViewData["Title"] = "Browse Courses by Faculty";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Browse Courses by Faculty</h1>
+            <p class="mt-2 text-sm text-gray-500">Explore our range of courses and their modules</p>
+        </div>
+
+        @if (!Model.CoursesByFaculty.Any())
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-12 text-center">
+                    <p class="text-gray-500">No courses are currently available.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Faculty Tabs -->
+            <div class="mb-6">
+                <div class="sm:hidden">
+                    <label for="faculty-select" class="sr-only">Select a faculty</label>
+                    <select id="faculty-select" name="faculty" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                        @foreach (var faculty in Model.CoursesByFaculty.Keys)
+                        {
+                            <option value="@faculty.Replace(" ", "-").ToLower()">@faculty</option>
+                        }
+                    </select>
+                </div>
+                <div class="hidden sm:block">
+                    <div class="border-b border-gray-200">
+                        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                            @foreach (var faculty in Model.CoursesByFaculty.Keys)
+                            {
+                                <a href="#@faculty.Replace(" ", "-").ToLower()"
+                                   class="faculty-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+                                   data-target="@faculty.Replace(" ", "-").ToLower()">
+                                    @faculty
+                                </a>
+                            }
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Faculty Content Sections -->
+            @foreach (var faculty in Model.CoursesByFaculty.Keys)
+            {
+                <div id="@faculty.Replace(" ", "-").ToLower()" class="faculty-content bg-white shadow overflow-hidden sm:rounded-lg mb-8" style="display: none;">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h2 class="text-lg font-medium text-gray-900">@faculty</h2>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500">Courses and their modules</p>
+                    </div>
+
+                    @foreach (var course in Model.CoursesByFaculty[faculty])
+                    {
+                        <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="text-lg font-medium text-gray-900">@course.CourseName (@course.CourseCode)</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Duration: @course.DurationYears @(course.DurationYears == 1 ? "year" : "years")</p>
+                                    <p class="mt-1 text-sm text-gray-500">@course.Description</p>
+                                </div>
+                                <div>
+                                    <a asp-controller="Student" asp-action="ApplyAdmission" asp-route-courseId="@course.Id"
+                                       class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Apply
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Modules accordion -->
+                            <div class="mt-4">
+                                <button type="button" class="modules-toggle text-left w-full flex justify-between items-center py-2 text-sm font-medium text-indigo-600 focus:outline-none" data-course-id="@course.Id">
+                                    <span>View Modules (@course.Modules.Count)</span>
+                                    <svg class="h-5 w-5 transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                                <div id="modules-@course.Id" class="modules-content mt-2 pl-4 border-l-2 border-gray-100" style="display: none;">
+                                    @if (!course.Modules.Any())
+                                    {
+                                        <p class="text-sm text-gray-500">No modules found for this course.</p>
+                                    }
+                                    else
+                                    {
+                                        <div class="space-y-4">
+                                            @foreach (var yearGroup in course.Modules.GroupBy(m => m.Year).OrderBy(g => g.Key))
+                                            {
+                                                <div>
+                                                    <h4 class="text-sm font-medium text-gray-700">Year @yearGroup.Key</h4>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                                                        @foreach (var semesterGroup in yearGroup.GroupBy(m => m.Semester).OrderBy(g => g.Key))
+                                                        {
+                                                            <div class="bg-gray-50 rounded-md p-3">
+                                                                <h5 class="text-sm font-medium text-gray-700">@semesterGroup.Key</h5>
+                                                                <ul class="mt-2 space-y-2">
+                                                                    @foreach (var module in semesterGroup)
+                                                                    {
+                                                                        <li class="text-sm">
+                                                                            <span class="font-medium">@module.ModuleCode:</span> @module.ModuleName
+                                                                            <p class="text-xs text-gray-500 mt-0.5">@module.Description</p>
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Show first faculty content by default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show the first faculty tab and content
+            const firstFacultyTab = document.querySelector('.faculty-tab');
+            const firstFacultyContent = document.querySelector('.faculty-content');
+
+            if (firstFacultyTab && firstFacultyContent) {
+                firstFacultyTab.classList.add('text-indigo-600', 'border-indigo-600');
+                firstFacultyTab.classList.remove('text-gray-500', 'border-transparent');
+                firstFacultyContent.style.display = 'block';
+            }
+
+            // Faculty tab switching
+            document.querySelectorAll('.faculty-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.faculty-tab').forEach(t => {
+                        t.classList.remove('text-indigo-600', 'border-indigo-600');
+                        t.classList.add('text-gray-500', 'border-transparent');
+                    });
+
+                    // Hide all content sections
+                    document.querySelectorAll('.faculty-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+
+                    // Add active class to clicked tab
+                    this.classList.add('text-indigo-600', 'border-indigo-600');
+                    this.classList.remove('text-gray-500', 'border-transparent');
+
+                    // Show corresponding content
+                    const targetId = this.getAttribute('data-target');
+                    document.getElementById(targetId).style.display = 'block';
+                });
+            });
+
+            // Mobile faculty selector
+            const facultySelect = document.getElementById('faculty-select');
+            if (facultySelect) {
+                facultySelect.addEventListener('change', function() {
+                    // Hide all content sections
+                    document.querySelectorAll('.faculty-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+
+                    // Show selected content
+                    document.getElementById(this.value).style.display = 'block';
+                });
+            }
+
+            // Module accordions
+            document.querySelectorAll('.modules-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const courseId = this.getAttribute('data-course-id');
+                    const modulesContent = document.getElementById(`modules-${courseId}`);
+
+                    if (modulesContent.style.display === 'none') {
+                        modulesContent.style.display = 'block';
+                        this.querySelector('svg').classList.add('rotate-180');
+                    } else {
+                        modulesContent.style.display = 'none';
+                        this.querySelector('svg').classList.remove('rotate-180');
+                    }
+                });
+            });
+        });
+    </script>
+}

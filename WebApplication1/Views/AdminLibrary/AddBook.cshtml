@@ -1,0 +1,56 @@
+﻿@model WebApplication1.Models.LibraryResource
+
+@{
+    ViewData["Title"] = "Add New Book";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Add New Book</h1>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <form asp-action="AddBook" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-red-500"></div>
+
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div class="col-span-2">
+                            <label asp-for="Name" class="block text-sm font-medium text-gray-700">Book Title</label>
+                            <input asp-for="Name" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required />
+                            <span asp-validation-for="Name" class="text-red-500 text-xs"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="Author" class="block text-sm font-medium text-gray-700">Author</label>
+                            <input asp-for="Author" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required />
+                            <span asp-validation-for="Author" class="text-red-500 text-xs"></span>
+                        </div>
+
+                        <div>
+                            <label asp-for="ISBN" class="block text-sm font-medium text-gray-700">ISBN</label>
+                            <input asp-for="ISBN" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" />
+                            <span asp-validation-for="ISBN" class="text-red-500 text-xs"></span>
+                        </div>
+
+                        <div class="col-span-2">
+                            <label asp-for="Description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea asp-for="Description" rows="3" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"></textarea>
+                            <span asp-validation-for="Description" class="text-red-500 text-xs"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Add Book
+                        </button>
+                        <a asp-action="Index" class="ml-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

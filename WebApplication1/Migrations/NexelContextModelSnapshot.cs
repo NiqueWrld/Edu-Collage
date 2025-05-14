@@ -284,9 +284,6 @@ namespace WebApplication1.Migrations
                     b.Property<int?>("PaymentId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("PaymentRequired")
-                        .HasColumnType("bit");
-
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -398,6 +395,45 @@ namespace WebApplication1.Migrations
                     b.ToTable("LibraryBookings");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.LibraryResource", b =>
+                {
+                    b.Property<int>("ResourceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ResourceId"));
+
+                    b.Property<string>("Author")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ISBN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Specifications")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("ResourceId");
+
+                    b.ToTable("LibraryResources");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Module", b =>
                 {
                     b.Property<int>("ModuleId")
@@ -506,6 +542,47 @@ namespace WebApplication1.Migrations
                     b.HasIndex("StudentId");
 
                     b.ToTable("Performances");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.ResourceBooking", b =>
+                {
+                    b.Property<int>("BookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
+
+                    b.Property<DateTime>("BookingDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IdentityUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("ResourceId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReturnDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReturnPin")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookingId");
+
+                    b.HasIndex("IdentityUserId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("ResourceBookings");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Student", b =>
@@ -674,6 +751,25 @@ namespace WebApplication1.Migrations
                     b.Navigation("IdentityUser");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.ResourceBooking", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
+                        .WithMany()
+                        .HasForeignKey("IdentityUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WebApplication1.Models.LibraryResource", "Resource")
+                        .WithMany("Bookings")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IdentityUser");
+
+                    b.Navigation("Resource");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Student", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "IdentityUser")
@@ -688,6 +784,11 @@ namespace WebApplication1.Migrations
             modelBuilder.Entity("WebApplication1.Models.Course", b =>
                 {
                     b.Navigation("Modules");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.LibraryResource", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Student", b =>

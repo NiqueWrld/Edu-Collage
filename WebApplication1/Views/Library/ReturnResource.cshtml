@@ -1,0 +1,89 @@
+﻿@model WebApplication1.Models.ResourceBooking
+
+@{
+    ViewData["Title"] = "Return Resource";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Return Library Resource</h1>
+            <p class="mt-2 text-sm text-gray-500">Enter the PIN provided by the librarian to confirm the return</p>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-red-800">@TempData["ErrorMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Resource Details</h3>
+                <div class="mt-5 border-t border-gray-200">
+                    <dl class="divide-y divide-gray-200">
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <dt class="text-sm font-medium text-gray-500">Name</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Resource.Name</dd>
+                        </div>
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <dt class="text-sm font-medium text-gray-500">Resource Type</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Resource.Type</dd>
+                        </div>
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <dt class="text-sm font-medium text-gray-500">Booking Date</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.BookingDate.ToString("yyyy-MM-dd HH:mm")</dd>
+                        </div>
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4">
+                            <dt class="text-sm font-medium text-gray-500">Due Date</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                @Model.DueDate.ToString("yyyy-MM-dd HH:mm")
+                                @if (Model.DueDate < DateTime.UtcNow)
+                                {
+                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Overdue
+                                    </span>
+                                }
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <div class="mt-6">
+                    <form asp-action="SubmitReturn" method="post">
+                        <div class="space-y-6">
+                            <input type="hidden" name="bookingId" value="@Model.BookingId" />
+
+                            <div>
+                                <label for="returnPin" class="block text-sm font-medium text-gray-700">Return PIN</label>
+                                <div class="mt-1">
+                                    <input type="text" name="returnPin" id="returnPin" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Enter 6-digit PIN" required />
+                                </div>
+                                <p class="mt-2 text-sm text-gray-500">Enter the PIN provided by the librarian to confirm your return.</p>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <a href="@Url.Action("MyBookings", "Library")" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Back
+                                </a>
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    Submit Return
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

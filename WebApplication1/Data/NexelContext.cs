@@ -37,4 +37,7 @@ public class NexelContext : IdentityDbContext<IdentityUser>
     public DbSet<Performance> Performances { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<LibraryBooking> LibraryBookings { get; set; }
+
+    public DbSet<LibraryResource> LibraryResources { get; set; }
+    public DbSet<ResourceBooking> ResourceBookings { get; set; }
 }

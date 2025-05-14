@@ -1,0 +1,78 @@
+﻿@model IEnumerable<WebApplication1.Models.LibraryResource>
+
+@{
+    ViewData["Title"] = "Library Resources Management";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Library Resources Management</h1>
+            <div class="flex space-x-2">
+                <a asp-action="AddBook" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    Add Book
+                </a>
+                <a asp-action="AddComputer" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                    Add Computer
+                </a>
+                <a asp-action="ActiveBookings" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                    Active Bookings
+                </a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="mb-6 rounded-md bg-green-50 p-4 border border-green-200">
+                <div class="flex">
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+                @foreach (var resource in Model)
+                {
+                    <li class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">
+                                    @resource.Name
+                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-@(resource.IsAvailable ? "green" : "red")-100 text-@(resource.IsAvailable ? "green" : "red")-800">
+                                        @(resource.IsAvailable ? "Available" : "Checked Out")
+                                    </span>
+                                </h3>
+                                <p class="text-sm text-gray-500">
+                                    @if (resource.Type == ResourceType.Book)
+                                    {
+                                        <span>Author: @resource.Author | ISBN: @resource.ISBN</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Location: @resource.Location | Specs: @resource.Specifications</span>
+                                    }
+                                </p>
+                                <p class="mt-1 text-sm text-gray-500">@resource.Description</p>
+                            </div>
+                            <div class="flex flex-shrink-0">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-@(resource.Type == ResourceType.Book ? "indigo" : "blue")-100 text-@(resource.Type == ResourceType.Book ? "indigo" : "blue")-800">
+                                    @resource.Type
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-12">
+                <p class="text-lg text-gray-500">No library resources available. Add some using the buttons above!</p>
+            </div>
+        }
+    </div>
+</div>
