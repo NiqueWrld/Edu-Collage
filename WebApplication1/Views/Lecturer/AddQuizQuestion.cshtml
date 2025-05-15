@@ -1,0 +1,254 @@
+﻿@model WebApplication1.Models.ViewModels.AddQuizQuestionViewModel
+
+@{
+    ViewData["Title"] = "Add Question";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="@Url.Action("EditQuiz", new { id = Model.QuizId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Quiz
+            </a>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Add Question</h1>
+            <p class="mt-2 text-sm text-gray-500">
+                Quiz: @Model.QuizTitle
+            </p>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <form asp-action="AddQuizQuestion" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-red-500 px-4 py-3"></div>
+                <input asp-for="QuizId" type="hidden" />
+                <input asp-for="QuizTitle" type="hidden" />
+
+                <div class="px-4 py-5 sm:p-6 space-y-6">
+                    <!-- Question Type -->
+                    <div>
+                        <label asp-for="Type" class="block text-sm font-medium text-gray-700">
+                            Question Type <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1">
+                            <select asp-for="Type" id="questionType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" onchange="toggleQuestionFields()">
+                                <option value="0">Multiple Choice</option>
+                                <!-- <option value="2">Short Answer</option> -->
+                            </select>
+                            <span asp-validation-for="Type" class="text-sm text-red-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Question Text -->
+                    <div>
+                        <label asp-for="QuestionText" class="block text-sm font-medium text-gray-700">
+                            Question Text <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1">
+                            <textarea asp-for="QuestionText" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md" required></textarea>
+                            <span asp-validation-for="QuestionText" class="text-sm text-red-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Question Points -->
+                    <div>
+                        <label asp-for="Points" class="block text-sm font-medium text-gray-700">
+                            Points <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mt-1">
+                            <input asp-for="Points" type="number" min="1" max="100" value="1" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required />
+                            <span asp-validation-for="Points" class="text-sm text-red-500"></span>
+                        </div>
+                    </div>
+
+                    <!-- Multiple Choice Options Section -->
+                    <div id="multipleChoiceSection" class="border-t border-b border-gray-200 py-4">
+                        <div class="mb-4">
+                            <h3 class="text-lg font-medium text-gray-900">Multiple Choice Options</h3>
+                            <p class="text-sm text-gray-500">Enter 4 options and select the correct one</p>
+                        </div>
+
+                        <!-- Option 1 -->
+                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="correct-option-0" name="correctOption" type="radio" value="0" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300" required>
+                                </div>
+                                <div class="ml-3 w-full">
+                                    <label for="correct-option-0" class="block text-sm font-medium text-gray-700">Option 1 (select if correct)</label>
+                                    <input type="text" name="Options[0]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2 -->
+                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="correct-option-1" name="correctOption" type="radio" value="1" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
+                                </div>
+                                <div class="ml-3 w-full">
+                                    <label for="correct-option-1" class="block text-sm font-medium text-gray-700">Option 2 (select if correct)</label>
+                                    <input type="text" name="Options[1]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 3 -->
+                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="correct-option-2" name="correctOption" type="radio" value="2" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
+                                </div>
+                                <div class="ml-3 w-full">
+                                    <label for="correct-option-2" class="block text-sm font-medium text-gray-700">Option 3 (select if correct)</label>
+                                    <input type="text" name="Options[2]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 4 -->
+                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center">
+                                <div class="flex items-center h-5">
+                                    <input id="correct-option-3" name="correctOption" type="radio" value="3" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
+                                </div>
+                                <div class="ml-3 w-full">
+                                    <label for="correct-option-3" class="block text-sm font-medium text-gray-700">Option 4 (select if correct)</label>
+                                    <input type="text" name="Options[3]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Short Answer Info -->
+                    <div id="shortAnswerSection" class="rounded-md bg-blue-50 p-4" style="display: none;">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-blue-800">Short Answer Question</h3>
+                                <p class="mt-2 text-sm text-blue-700">
+                                    This question requires a brief text response from students. You will need to manually review and grade their answers.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Image Upload (OPTIONAL) -->
+                    <div>
+                        <label for="ImageFile" class="block text-sm font-medium text-gray-700">
+                            Image (Optional - you can skip this)
+                        </label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="ImageFile" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <span>Upload a file</span>
+                                        <input id="ImageFile" name="ImageFile" type="file" class="sr-only" accept="image/*" />
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PNG, JPG, GIF up to 2MB</p>
+                            </div>
+                        </div>
+                        <div id="imagePreviewContainer" class="mt-2 hidden">
+                            <img id="imagePreview" src="#" alt="Image preview" class="h-32 w-auto object-contain rounded border border-gray-200" />
+                            <button type="button" id="removeImage" class="mt-1 text-xs text-red-600 hover:text-red-800">Remove image</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden field to store the correct answer for multiple choice -->
+                <input type="hidden" id="correctAnswerField" asp-for="CorrectAnswer" value="" />
+
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6 space-x-3">
+                    <a href="@Url.Action("EditQuiz", new { id = Model.QuizId })" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Cancel
+                    </a>
+                    <button type="submit" id="submitButton" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Add Question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const questionType = document.getElementById('questionType');
+            const correctAnswerField = document.getElementById('correctAnswerField');
+
+            toggleQuestionFields(); // Initialize on page load
+
+            // Image preview functionality
+            const imageFile = document.getElementById('ImageFile');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const removeImageButton = document.getElementById('removeImage');
+
+            imageFile.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+
+            removeImageButton.addEventListener('click', function () {
+                imageFile.value = '';
+                imagePreview.src = '#';
+                imagePreviewContainer.classList.add('hidden');
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', function (e) {
+                if (questionType.value === '0') { // Multiple Choice
+                    // Get selected radio button value
+                    const selectedRadio = document.querySelector('input[name="correctOption"]:checked');
+                    if (!selectedRadio) {
+                        e.preventDefault();
+                        alert('Please select the correct answer option by clicking the radio button next to it.');
+                        return;
+                    }
+
+                    const optionIndex = parseInt(selectedRadio.value);
+                    const optionText = document.querySelector(`input[name="Options[${optionIndex}]"]`).value;
+                    correctAnswerField.value = optionText;
+                }
+            });
+        });
+
+        // Toggle question fields based on question type
+        function toggleQuestionFields() {
+            const questionType = document.getElementById('questionType').value;
+            const multipleChoiceSection = document.getElementById('multipleChoiceSection');
+            const shortAnswerSection = document.getElementById('shortAnswerSection');
+
+            if (questionType === '0') { // Multiple Choice
+                multipleChoiceSection.style.display = 'block';
+                shortAnswerSection.style.display = 'none';
+            } else { // Short Answer
+                multipleChoiceSection.style.display = 'none';
+                shortAnswerSection.style.display = 'block';
+            }
+        }
+    </script>
+}

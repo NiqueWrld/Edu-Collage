@@ -268,7 +268,7 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddModule([Bind("ModuleId,ModuleName,ModuleCode,Year,Semester,CourseId")] Module module)
+        public async Task<IActionResult> AddModule([Bind("ModuleId,ModuleName,Description,ModuleCode,Year,Semester,CourseId")] Module module)
         {
             _context.Add(module);
             await _context.SaveChangesAsync();

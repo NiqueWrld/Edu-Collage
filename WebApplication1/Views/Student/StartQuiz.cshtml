@@ -1,0 +1,166 @@
+﻿@model WebApplication1.Models.Quiz
+
+@{
+    ViewData["Title"] = "Start Quiz";
+    var currentDateTime = "2025-05-15 11:19:04";
+    var currentUser = "NiqueWrld";
+    var timeLeftInMinutes = Model.TimeLimit;
+    var endTime = Model.TimeLimit > 0
+        ? DateTime.Parse(currentDateTime).AddMinutes(Model.TimeLimit)
+        : (DateTime?)null;
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header & Navigation -->
+        <div class="mb-6">
+            <a href="@Url.Action("ModuleDetails", new { id = Model.ModuleId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Module
+            </a>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <h1 class="text-2xl font-bold text-gray-900 mb-4">@Model.Title</h1>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center text-sm text-gray-500 mb-2">
+                        <div>Quiz for: @Model.Module.ModuleName (@Model.Module.ModuleCode)</div>
+                        <div>@currentDateTime</div>
+                    </div>
+
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-100 text-indigo-800 py-1 px-2 rounded-md mr-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            @if (Model.TimeLimit > 0)
+                            {
+                                <span class="font-medium">@Model.TimeLimit minutes</span>
+                            }
+                            else
+                            {
+                                <span class="font-medium">No time limit</span>
+                            }
+                        </div>
+
+                        <div class="bg-blue-100 text-blue-800 py-1 px-2 rounded-md flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="font-medium">@Model.Questions.Count questions</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="text-sm text-gray-600 mb-4">
+                            @Model.Description
+                        </div>
+                    }
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Quiz Instructions</h2>
+
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700">
+                                    <strong>Important:</strong> Once you start the quiz, the timer will begin. Make sure you have adequate time to complete it.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-3 text-sm text-gray-600 list-disc pl-5">
+                        @if (Model.TimeLimit > 0)
+                        {
+                            <li>You have <strong>@Model.TimeLimit minutes</strong> to complete this quiz.</li>
+                            <li>The quiz will automatically submit when the time expires.</li>
+                        }
+                        else
+                        {
+                            <li>This quiz has no time limit. Take as much time as you need.</li>
+                        }
+
+                        <li>This quiz contains <strong>@Model.Questions.Count questions</strong> worth a total of <strong>@Model.Questions.Sum(q => q.Points) points</strong>.</li>
+
+                        @*
+                        @if (!Model.AllowMultipleAttempts)
+                        {
+                            <li><strong>You can only attempt this quiz once.</strong> Make sure you're ready before starting.</li>
+                        }
+                        else
+                        {
+                            <li>You can attempt this quiz multiple times. Your highest score will be recorded.</li>
+                        }
+
+                        *@
+
+                        <li>You can navigate between questions freely during the quiz.</li>
+                        <li>Your answers are automatically saved as you progress.</li>
+                        <li>Click "Submit Quiz" when you're finished to record your final answers.</li>
+                    </ul>
+                    @*
+                    @if (!string.IsNullOrEmpty(Model.Instructions))
+                    {
+                        <div class="mt-4 text-sm text-gray-600">
+                            <h3 class="font-medium text-gray-900 mb-2">Additional Instructions:</h3>
+                            <p>@Model.Instructions</p>
+                        </div>
+                    } 
+                    *@
+                </div>
+
+                <div class="mt-8 sm:flex sm:justify-between">
+                    <div class="inline-flex items-center text-sm text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" />
+                        </svg>
+                        <span>@currentUser</span>
+                    </div>
+
+                    <div class="mt-5 sm:mt-0">
+                        <form method="post" action="@Url.Action("CreateAttempt")">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="quizId" value="@Model.QuizId" />
+                            <button type="submit" class="w-full inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Begin Quiz Now
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.TimeLimit > 0 && endTime.HasValue)
+        {
+            <div class="mt-4 text-sm text-center text-gray-500">
+                @if (Model.TimeLimit > 60)
+                {
+                    var hours = Math.Floor(Model.TimeLimit / 60m);
+                    var minutes = Model.TimeLimit % 60;
+                    <p>If you start now, the quiz will end at approximately @endTime.Value.ToString("HH:mm") (in @hours hour@(hours != 1 ? "s" : "") and @minutes minute@(minutes != 1 ? "s" : "")).</p>
+                }
+                else
+                {
+                    <p>If you start now, the quiz will end at approximately @endTime.Value.ToString("HH:mm") (in @Model.TimeLimit minute@(Model.TimeLimit != 1 ? "s" : "")).</p>
+                }
+            </div>
+        }
+    </div>
+</div>

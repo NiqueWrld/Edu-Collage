@@ -1,0 +1,465 @@
+﻿@model WebApplication1.Models.StudentQuizAttempt
+@{
+    ViewData["Title"] = "Quiz Results";
+    var currentDateTime = "2025-05-15 12:52:14";
+    var currentUser = "NiqueWrld";
+
+    var stats = (Dictionary<string, object>)ViewBag.Statistics;
+    var scorePercentage = (decimal)stats["ScorePercentage"];
+    var previousAttempts = ViewBag.PreviousAttempts as List<dynamic>;
+
+    // Determine if there's feedback available
+    bool hasFeedback = !string.IsNullOrEmpty(Model.FeedbackFromLecturer) ||
+                       Model.Answers.Any(a => !string.IsNullOrEmpty(a.FeedbackFromLecturer));
+
+    // Determine score class based on percentage
+    string scoreClass = scorePercentage >= 80 ? "text-green-600" :
+                       scorePercentage >= 60 ? "text-yellow-600" : "text-red-600";
+
+    // Calculate time spent
+    TimeSpan timeSpent = Model.SubmissionTime.HasValue
+        ? Model.SubmissionTime.Value - Model.StartTime
+        : TimeSpan.Zero;
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- User and Time Info -->
+        <div class="mb-6 bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-3 sm:px-6 flex justify-between">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="text-sm font-medium text-gray-900">@currentUser</span>
+                </div>
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span class="text-sm text-gray-500">@currentDateTime</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mb-6">
+            <a href="@Url.Action("ModuleDetails", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Module
+            </a>
+        </div>
+
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Quiz Results</h1>
+            <p class="mt-2 text-sm text-gray-500">
+                @Model.Quiz.Title - @Model.Quiz.Module.ModuleName (@Model.Quiz.Module.ModuleCode)
+            </p>
+        </div>
+
+        <!-- Results Summary Card -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h2 class="text-lg leading-6 font-medium text-gray-900">Results Summary</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    Completed on @Model.SubmissionTime?.ToString("yyyy-MM-dd HH:mm:ss")
+                </p>
+            </div>
+            <div class="bg-gray-50 px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <!-- Score -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Your Score</dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold @scoreClass">
+                                                @stats["EarnedPoints"] / @stats["TotalPoints"]
+                                            </div>
+                                            <div class="ml-2 flex items-baseline text-sm font-semibold @scoreClass">
+                                                @Math.Round(scorePercentage, 1)%
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Spent -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Time Spent</dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                @timeSpent.Hours.ToString("00"):@timeSpent.Minutes.ToString("00"):@timeSpent.Seconds.ToString("00")
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Questions Correct -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                    <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <div class="ml-5 w-0 flex-1">
+                                    <dl>
+                                        <dt class="text-sm font-medium text-gray-500 truncate">Correct Answers</dt>
+                                        <dd class="flex items-baseline">
+                                            <div class="text-2xl font-semibold text-gray-900">
+                                                @stats["CorrectAnswers"] / @stats["AnsweredQuestions"]
+                                            </div>
+                                            @if ((int)stats["PendingReview"] > 0)
+                                            {
+                                                <div class="ml-2 flex items-baseline text-sm font-semibold text-yellow-600">
+                                                    (@stats["PendingReview"] pending)
+                                                </div>
+                                            }
+                                        </dd>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pass/Fail -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg">
+                        <div class="px-4 py-5 sm:p-6">
+                            <div class="flex items-center">
+                                @if (scorePercentage >= 60)
+                                {
+                                    <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Status</dt>
+                                            <dd class="flex items-baseline">
+                                                <div class="text-2xl font-semibold text-green-600">
+                                                    Passed
+                                                </div>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                                        <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-5 w-0 flex-1">
+                                        <dl>
+                                            <dt class="text-sm font-medium text-gray-500 truncate">Status</dt>
+                                            <dd class="flex items-baseline">
+                                                <div class="text-2xl font-semibold text-red-600">
+                                                    Failed
+                                                </div>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (hasFeedback && !string.IsNullOrEmpty(Model.FeedbackFromLecturer))
+                {
+                    <div class="mt-6">
+                        <h3 class="text-sm font-medium text-gray-700">Instructor Feedback:</h3>
+                        <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
+                            <p class="text-sm text-gray-900 whitespace-pre-line">@Model.FeedbackFromLecturer</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Previous Attempts -->
+        @if (previousAttempts != null && previousAttempts.Count > 0)
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Previous Attempts</h2>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        Your performance history on this quiz
+                    </p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Attempt #
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Duration
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Score
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var attempt in previousAttempts)
+                            {
+                                var duration = attempt.SubmissionTime - attempt.StartTime;
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">#@attempt.AttemptId</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">@attempt.SubmissionTime.ToString("yyyy-MM-dd")</div>
+                                        <div class="text-sm text-gray-500">@attempt.SubmissionTime.ToString("HH:mm:ss")</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">@duration.Hours.ToString("00"):@duration.Minutes.ToString("00"):@duration.Seconds.ToString("00")</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">@attempt.Score</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <a href="@Url.Action("QuizResults", new { attemptId = attempt.AttemptId })" class="text-indigo-600 hover:text-indigo-900">
+                                            View Results
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- Question Review -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h2 class="text-lg leading-6 font-medium text-gray-900">Question Review</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    Detailed review of your answers
+                </p>
+            </div>
+            <div class="px-4 py-5 sm:px-6">
+                <div class="space-y-6">
+                    @{
+                        int questionIndex = 1;
+                    }
+                    @foreach (var question in Model.Quiz.Questions)
+                    {
+                        var answer = Model.Answers.FirstOrDefault(a => a.QuestionId == question.QuestionId);
+                        var isCorrect = answer?.IsCorrect;
+                        var pointsAwarded = answer?.PointsAwarded ?? 0;
+                        var borderClass = isCorrect == true ? "border-green-300" :
+                        isCorrect == false ? "border-red-300" :
+                        !string.IsNullOrWhiteSpace(answer?.Answer) ? "border-yellow-300" : "border-gray-200";
+                        var bgClass = isCorrect == true ? "bg-green-50" :
+                        isCorrect == false ? "bg-red-50" :
+                        !string.IsNullOrWhiteSpace(answer?.Answer) ? "bg-yellow-50" : "bg-white";
+
+                        <div class="border @borderClass rounded-lg overflow-hidden">
+                            <div class="@bgClass px-4 py-4 border-b @borderClass">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h3 class="text-base font-medium text-gray-900">Question @(questionIndex++)</h3>
+                                        <p class="mt-1 text-sm text-gray-600">@question.Points point@(question.Points != 1 ? "s" : "")</p>
+                                    </div>
+                                    <div>
+                                        @if (isCorrect == true)
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                                @pointsAwarded / @question.Points points
+                                            </span>
+                                        }
+                                        else if (isCorrect == false)
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                                </svg>
+                                                @pointsAwarded / @question.Points points
+                                            </span>
+                                        }
+                                        else if (!string.IsNullOrWhiteSpace(answer?.Answer))
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 001-1v-4a1 1 0 10-2 0v4a1 1 0 001 1z" clip-rule="evenodd" />
+                                                </svg>
+                                                Pending Review
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                Not Answered
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="px-4 py-4">
+                                <div class="text-sm text-gray-900 whitespace-pre-line mb-4">@question.QuestionText</div>
+
+                                @if (!string.IsNullOrEmpty(question.ImageUrl))
+                                {
+                                    <div class="mt-2 mb-4">
+                                        <img src="@question.ImageUrl" alt="Question image" class="max-h-64 object-contain rounded border border-gray-200" />
+                                    </div>
+                                }
+
+                                <!-- Your Answer -->
+                                <div class="mt-4">
+                                    <h4 class="text-sm font-medium text-gray-700">Your Answer:</h4>
+                                    @if (!string.IsNullOrWhiteSpace(answer?.Answer))
+                                    {
+                                        <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                            <p class="text-sm text-gray-900 whitespace-pre-line">@answer.Answer</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                            <p class="text-sm italic text-gray-500">No answer provided</p>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Correct Answer (for wrong answers) -->
+                                @if (isCorrect == false && !string.IsNullOrEmpty(question.CorrectAnswer))
+                                {
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-medium text-gray-700">Correct Answer:</h4>
+                                        <div class="mt-2 p-3 bg-green-50 rounded-md border border-green-200">
+                                            <p class="text-sm text-green-900">@question.CorrectAnswer</p>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Options for Multiple Choice Questions -->
+                                @if ((question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.TrueFalse) &&
+                               (!string.IsNullOrEmpty(question.OptionsJson) || question.Type == QuestionType.TrueFalse))
+                                {
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-medium text-gray-700">All Options:</h4>
+                                        <div class="mt-2 space-y-2">
+                                            @{
+                                                var options = !string.IsNullOrEmpty(question.OptionsJson)
+                                                ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(question.OptionsJson)
+                                                : new List<string>();
+                                            }
+
+                                            @foreach (var option in options)
+                                            {
+                                                bool isSelected = answer?.Answer == option;
+                                                bool isCorrectOption = option == question.CorrectAnswer;
+                                                string optionBgClass = "";
+                                                string iconHtml = "";
+
+                                                if (isSelected && isCorrectOption)
+                                                {
+                                                    optionBgClass = "bg-green-50 border-green-300";
+                                                    iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
+                                                }
+                                                else if (isSelected && !isCorrectOption)
+                                                {
+                                                    optionBgClass = "bg-red-50 border-red-300";
+                                                    iconHtml = "<svg class='h-5 w-5 text-red-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd' /></svg>";
+                                                }
+                                                else if (!isSelected && isCorrectOption)
+                                                {
+                                                    optionBgClass = "bg-green-50 border-green-300";
+                                                    iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
+                                                }
+                                                else
+                                                {
+                                                    optionBgClass = "bg-white border-gray-300";
+                                                    iconHtml = "<div class='h-5 w-5 mr-2'></div>";
+                                                }
+
+                                                <div class="flex items-center p-3 border rounded-md @optionBgClass">
+                                                    @Html.Raw(iconHtml)
+                                                    <span class="text-sm">@option</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Instructor Feedback if any -->
+                                @if (!string.IsNullOrEmpty(answer?.FeedbackFromLecturer))
+                                {
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-medium text-gray-700">Instructor Feedback:</h4>
+                                        <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
+                                            <p class="text-sm text-gray-900 whitespace-pre-line">@answer.FeedbackFromLecturer</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mt-6">
+            <a href="@Url.Action("ModuleDetails", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                Return to Module
+            </a>
+            <a href="@Url.Action("QuizAttempts", new { quizId = Model.QuizId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                View All Attempts
+            </a>
+            @*
+            @if (Model.Quiz.AllowMultipleAttempts)
+            {
+                <a href="@Url.Action("StartQuiz", new { quizId = Model.QuizId })" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                    </svg>
+                    Try Again
+                </a>
+            }
+        </div>
+        *@
+    </div>
+</div>

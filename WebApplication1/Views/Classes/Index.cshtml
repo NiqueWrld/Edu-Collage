@@ -1,0 +1,86 @@
+﻿@model WebApplication1.Models.ViewModels.ClassesViewModel
+
+@{
+    ViewData["Title"] = "My Classes";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">My Classes</h1>
+            <p class="mt-2 text-sm text-gray-500">Access your enrolled modules and join module group chats</p>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 sm:px-6">
+                <h2 class="text-lg font-medium text-gray-900">Enrollment Details</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Your current enrollment information</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Student Name</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.StudentName</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Course</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Course.CourseName (@Model.Course.CourseCode)</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Faculty</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Course.Faculty</dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Current Year</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.StudyYear of @Model.Course.DurationYears</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-bold text-gray-900 mb-4">My Modules</h2>
+
+        @if (!Model.EnrolledModules.Any())
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center">
+                <p class="text-gray-500">No modules found for your current year of study.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach (var semesterGroup in Model.EnrolledModules.GroupBy(m => m.Semester))
+                {
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                            <h3 class="text-lg font-medium leading-6 text-gray-900">@semesterGroup.Key</h3>
+                        </div>
+                        <ul class="divide-y divide-gray-200">
+                            @foreach (var module in semesterGroup)
+                            {
+                                <li class="px-4 py-4">
+                                    <div>
+                                        <h4 class="text-md font-medium text-gray-900">@module.ModuleName</h4>
+                                        <p class="mt-1 text-sm text-gray-500">@module.ModuleCode</p>
+                                        <p class="mt-2 text-sm text-gray-600 line-clamp-2">@module.Description</p>
+
+                                        <div class="mt-4 flex justify-between items-center">
+                                            <span class="text-xs text-gray-500">Year @module.Year</span>
+                                            <a asp-controller="Chat" asp-action="Index" asp-route-id="@module.ModuleId"
+                                               class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                Open Group Chat
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,129 @@
+﻿@model WebApplication1.Models.ViewModels.ManageLecturerModulesViewModel
+
+@{
+    ViewData["Title"] = "Manage Lecturer Modules";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="@Url.Action("Index")" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Lecturers
+            </a>
+        </div>
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Manage Modules for @Model.LecturerName</h1>
+            <p class="mt-2 text-sm text-gray-500">Assign or unassign modules for this lecturer</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">@TempData["ErrorMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Assign New Module -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h2 class="text-lg font-medium text-gray-900">Assign Module</h2>
+                    <p class="mt-1 text-sm text-gray-500">Select a module to assign to this lecturer</p>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    <form asp-action="AssignModule" method="post">
+                        <input type="hidden" name="LecturerId" value="@Model.LecturerId" />
+
+                        <div class="mb-4">
+                            <label for="ModuleId" class="block text-sm font-medium text-gray-700">Select Module</label>
+                            <select id="ModuleId" name="ModuleId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                @foreach (var module in Model.AllModules)
+                                {
+                                    <option value="@module.Value">@module.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                            </svg>
+                            Assign Module
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Currently Assigned Modules -->
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                    <h2 class="text-lg font-medium text-gray-900">Currently Assigned Modules</h2>
+                    <p class="mt-1 text-sm text-gray-500">Modules currently assigned to this lecturer</p>
+                </div>
+                <div class="px-4 py-5 sm:p-6">
+                    @if (Model.AssignedModules.Any())
+                    {
+                        <ul class="divide-y divide-gray-200">
+                            @foreach (var assignment in Model.AssignedModules)
+                            {
+                                <li class="py-3">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900">@assignment.Module.ModuleName (@assignment.Module.ModuleCode)</p>
+                                            <p class="text-xs text-gray-500">@assignment.Module.Course.Faculty - @assignment.Module.Course.CourseName</p>
+                                            <p class="text-xs text-gray-500">Assigned: @assignment.AssignedDate.ToString("yyyy-MM-dd")</p>
+                                        </div>
+                                        <form asp-action="UnassignModule" method="post">
+                                            <input type="hidden" name="assignmentId" value="@assignment.Id" />
+                                            <input type="hidden" name="lecturerId" value="@Model.LecturerId" />
+                                            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                    onclick="return confirm('Are you sure you want to unassign this module?');">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Unassign
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-gray-500">No modules are currently assigned to this lecturer.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -328,7 +328,7 @@ namespace WebApplication1.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Performances",
+                name: "Performance",
                 columns: table => new
                 {
                     PerformanceId = table.Column<int>(type: "int", nullable: false)
@@ -341,18 +341,109 @@ namespace WebApplication1.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Performances", x => x.PerformanceId);
+                    table.PrimaryKey("PK_Performance", x => x.PerformanceId);
                     table.ForeignKey(
-                        name: "FK_Performances_AspNetUsers_IdentityUserId",
+                        name: "FK_Performance_AspNetUsers_IdentityUserId",
                         column: x => x.IdentityUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Performances_Students_StudentId",
+                        name: "FK_Performance_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "StudentId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ModuleLecturers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ModuleId = table.Column<int>(type: "int", nullable: false),
+                    LecturerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssignedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ModuleLecturers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ModuleLecturers_AspNetUsers_LecturerId",
+                        column: x => x.LecturerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ModuleLecturers_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "ModuleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Quizzes",
+                columns: table => new
+                {
+                    QuizId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModuleId = table.Column<int>(type: "int", nullable: false),
+                    CreatedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    TimeLimit = table.Column<int>(type: "int", nullable: false),
+                    IsPublished = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Quizzes", x => x.QuizId);
+                    table.ForeignKey(
+                        name: "FK_Quizzes_AspNetUsers_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Quizzes_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "ModuleId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudyMaterials",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    ResourceUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModuleId = table.Column<int>(type: "int", nullable: false),
+                    UploadedById = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UploadedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudyMaterials", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StudyMaterials_AspNetUsers_UploadedById",
+                        column: x => x.UploadedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudyMaterials_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "ModuleId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -414,6 +505,90 @@ namespace WebApplication1.Migrations
                         column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "StudentId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "QuizQuestions",
+                columns: table => new
+                {
+                    QuestionId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuestionText = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Points = table.Column<int>(type: "int", nullable: false),
+                    QuizId = table.Column<int>(type: "int", nullable: false),
+                    OptionsJson = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CorrectAnswer = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_QuizQuestions", x => x.QuestionId);
+                    table.ForeignKey(
+                        name: "FK_QuizQuestions_Quizzes_QuizId",
+                        column: x => x.QuizId,
+                        principalTable: "Quizzes",
+                        principalColumn: "QuizId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentQuizAttempts",
+                columns: table => new
+                {
+                    AttemptId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuizId = table.Column<int>(type: "int", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SubmissionTime = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsSubmitted = table.Column<bool>(type: "bit", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: true),
+                    FeedbackFromLecturer = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentQuizAttempts", x => x.AttemptId);
+                    table.ForeignKey(
+                        name: "FK_StudentQuizAttempts_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudentQuizAttempts_Quizzes_QuizId",
+                        column: x => x.QuizId,
+                        principalTable: "Quizzes",
+                        principalColumn: "QuizId");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentAnswers",
+                columns: table => new
+                {
+                    AnswerId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    QuestionId = table.Column<int>(type: "int", nullable: false),
+                    AttemptId = table.Column<int>(type: "int", nullable: false),
+                    Answer = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsCorrect = table.Column<bool>(type: "bit", nullable: true),
+                    PointsAwarded = table.Column<int>(type: "int", nullable: true),
+                    FeedbackFromLecturer = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentAnswers", x => x.AnswerId);
+                    table.ForeignKey(
+                        name: "FK_StudentAnswers_QuizQuestions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "QuizQuestions",
+                        principalColumn: "QuestionId");
+                    table.ForeignKey(
+                        name: "FK_StudentAnswers_StudentQuizAttempts_AttemptId",
+                        column: x => x.AttemptId,
+                        principalTable: "StudentQuizAttempts",
+                        principalColumn: "AttemptId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -491,6 +666,16 @@ namespace WebApplication1.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ModuleLecturers_LecturerId",
+                table: "ModuleLecturers",
+                column: "LecturerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ModuleLecturers_ModuleId",
+                table: "ModuleLecturers",
+                column: "ModuleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Modules_CourseId",
                 table: "Modules",
                 column: "CourseId");
@@ -506,14 +691,29 @@ namespace WebApplication1.Migrations
                 column: "StudentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Performances_IdentityUserId",
-                table: "Performances",
+                name: "IX_Performance_IdentityUserId",
+                table: "Performance",
                 column: "IdentityUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Performances_StudentId",
-                table: "Performances",
+                name: "IX_Performance_StudentId",
+                table: "Performance",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_QuizQuestions_QuizId",
+                table: "QuizQuestions",
+                column: "QuizId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Quizzes_CreatedById",
+                table: "Quizzes",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Quizzes_ModuleId",
+                table: "Quizzes",
+                column: "ModuleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ResourceBookings_IdentityUserId",
@@ -526,9 +726,39 @@ namespace WebApplication1.Migrations
                 column: "ResourceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_StudentAnswers_AttemptId",
+                table: "StudentAnswers",
+                column: "AttemptId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentAnswers_QuestionId",
+                table: "StudentAnswers",
+                column: "QuestionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentQuizAttempts_QuizId",
+                table: "StudentQuizAttempts",
+                column: "QuizId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentQuizAttempts_StudentId",
+                table: "StudentQuizAttempts",
+                column: "StudentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Students_IdentityUserId",
                 table: "Students",
                 column: "IdentityUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudyMaterials_ModuleId",
+                table: "StudyMaterials",
+                column: "ModuleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudyMaterials_UploadedById",
+                table: "StudyMaterials",
+                column: "UploadedById");
         }
 
         /// <inheritdoc />
@@ -556,13 +786,19 @@ namespace WebApplication1.Migrations
                 name: "LibraryBookings");
 
             migrationBuilder.DropTable(
-                name: "Modules");
+                name: "ModuleLecturers");
 
             migrationBuilder.DropTable(
-                name: "Performances");
+                name: "Performance");
 
             migrationBuilder.DropTable(
                 name: "ResourceBookings");
+
+            migrationBuilder.DropTable(
+                name: "StudentAnswers");
+
+            migrationBuilder.DropTable(
+                name: "StudyMaterials");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -571,16 +807,28 @@ namespace WebApplication1.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Courses");
+                name: "LibraryResources");
 
             migrationBuilder.DropTable(
-                name: "LibraryResources");
+                name: "QuizQuestions");
+
+            migrationBuilder.DropTable(
+                name: "StudentQuizAttempts");
 
             migrationBuilder.DropTable(
                 name: "Students");
 
             migrationBuilder.DropTable(
+                name: "Quizzes");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "Modules");
+
+            migrationBuilder.DropTable(
+                name: "Courses");
         }
     }
 }

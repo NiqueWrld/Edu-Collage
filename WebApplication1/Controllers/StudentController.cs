@@ -14,6 +14,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Braintree;
 using Microsoft.Extensions.DependencyInjection;
+using WebApplication1.Models.ViewModels;
 
 namespace WebApplication1.Controllers
 {
@@ -121,16 +122,21 @@ namespace WebApplication1.Controllers
                 {
                     PaymentDate = DateTime.UtcNow,
                     Amount = application.ApplicationFee,
-                    PaymentMethod = "Credit Card", // You can customize this based on the payment method used
+                    PaymentMethod = "Credit Card",
                     Status = "Completed",
-                    IdentityUserId = application.IdentityUserId // Assuming `IdentityUserId` is a field in Application
+                    IdentityUserId = application.IdentityUserId 
                 };
 
-                // Save the Payment record to the database
-                _context.Payments.Add(payment);
 
-                // Update the application to reflect payment status
+                _context.Payments.Add(payment);
+                await _context.SaveChangesAsync(); 
+
+              
+                application.PaymentId = payment.PaymentId;
+
+                // Save the updated application
                 await _context.SaveChangesAsync();
+
 
                 TempData["SuccessMessage"] = "Payment completed successfully!";
                 return RedirectToAction("TrackApplications");
@@ -146,6 +152,67 @@ namespace WebApplication1.Controllers
         {
             return View();
         }
+
+        public async Task<IActionResult> ModuleDetails(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            
+
+            var module = await _context.Modules
+                .Include(m => m.Course)
+                .FirstOrDefaultAsync(m => m.ModuleId == id);
+
+            if (module == null)
+            {
+                return NotFound();
+            }
+
+            // Get study materials for this module
+            var studyMaterials = await _context.StudyMaterials
+                .Where(sm => sm.ModuleId == id)
+                .OrderByDescending(sm => sm.UploadedDate)
+                .ToListAsync();
+
+            // Get quizzes for this module
+            var quizzes = await _context.Quizzes
+                .Where(q => q.ModuleId == id)
+                .OrderByDescending(q => q.CreatedDate)
+                .ToListAsync();
+
+            var viewModel = new ModuleDetailsViewModel
+            {
+                Module = module,
+                StudyMaterials = studyMaterials,
+                Quizzes = quizzes
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> Materials()
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Challenge();
+            }
+
+            var applications = await _context.Applications
+                .Where(e => e.IdentityUserId == userId)
+                .Include(e => e.Course)
+                .ThenInclude(c => c.Modules)
+                .ToListAsync();
+
+            // Extract all modules
+            var modules = applications
+                .SelectMany(app => app.Course.Modules)
+                .ToList();
+
+            return View(modules); // Now you're passing List<Module>
+        }
+
 
         [HttpGet]
         public IActionResult ApplyAdmission()
@@ -208,6 +275,171 @@ namespace WebApplication1.Controllers
         public IActionResult Dashboard()
         {
             return View();
+        }
+
+        // GET: Student/StartQuiz/5
+        public async Task<IActionResult> StartQuiz(int quizId)
+        {
+            var quiz = await _context.Quizzes
+                .Include(q => q.Module)
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.QuizId == quizId);
+
+            if (quiz == null) return NotFound();
+
+            // Check eligibility, etc.
+
+            return View(quiz);
+        }
+
+
+        // GET: Student/TakeQuiz/5
+        public async Task<IActionResult> TakeQuiz(int attemptId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var attempt = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz).ThenInclude(q => q.Questions)
+                .Include(a => a.Answers)
+                .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.StudentId == userId);
+
+            if (attempt == null) return NotFound();
+
+            // Check time limit, etc.
+
+            return View(attempt);
+        }
+
+
+        // POST: Student/CreateAttempt
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAttempt(int quizId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var quiz = await _context.Quizzes
+                .Include(q => q.Questions)
+                .FirstOrDefaultAsync(q => q.QuizId == quizId);
+
+            if (quiz == null) return NotFound();
+
+            var attempt = new StudentQuizAttempt
+            {
+                QuizId = quizId,
+                StudentId = userId,
+                StartTime = DateTime.UtcNow,
+                IsSubmitted = false
+            };
+            _context.StudentQuizAttempts.Add(attempt);
+            await _context.SaveChangesAsync();
+
+            // Pre-create blank answers
+            foreach (var question in quiz.Questions)
+            {
+                _context.StudentAnswers.Add(new StudentAnswer
+                {
+                    AttemptId = attempt.AttemptId,
+                    QuestionId = question.QuestionId,
+                    Answer = string.Empty
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("TakeQuiz", new { attemptId = attempt.AttemptId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitQuiz(int attemptId, Dictionary<string, string> answers)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var attempt = await _context.StudentQuizAttempts
+                .Include(a => a.Answers)
+                .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.StudentId == userId);
+
+            if (attempt == null) return NotFound();
+
+            // Update answers
+            foreach (var ans in attempt.Answers)
+            {
+                if (answers.TryGetValue($"answer_{ans.QuestionId}", out var value))
+                    ans.Answer = value;
+            }
+            attempt.IsSubmitted = true;
+            attempt.SubmissionTime = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("QuizResults", new { attemptId });
+        }
+
+        // GET: Student/QuizResults/5
+        public async Task<IActionResult> QuizResults(int attemptId)
+        {
+            // Get current user ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get attempt with all related data
+            var attempt = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Module)
+                .Include(a => a.Quiz.Questions)
+                .Include(a => a.Answers)
+                    .ThenInclude(a => a.Question)
+                .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.StudentId == userId);
+
+            if (attempt == null)
+            {
+                TempData["ErrorMessage"] = "Quiz attempt not found.";
+                return RedirectToAction("ModuleList");
+            }
+
+            // If not submitted yet, redirect to take quiz
+            if (!attempt.IsSubmitted)
+            {
+                return RedirectToAction("TakeQuiz", new { attemptId = attempt.AttemptId });
+            }
+
+            // Calculate statistics
+            var totalQuestions = attempt.Quiz.Questions.Count;
+            var answeredQuestions = attempt.Answers.Count(a => !string.IsNullOrWhiteSpace(a.Answer));
+            var correctAnswers = attempt.Answers.Count(a => a.IsCorrect == true);
+            var incorrectAnswers = attempt.Answers.Count(a => a.IsCorrect == false);
+            var pendingReview = attempt.Answers.Count(a => a.IsCorrect == null && !string.IsNullOrWhiteSpace(a.Answer));
+            var totalPoints = attempt.Quiz.Questions.Sum(q => q.Points);
+            var earnedPoints = attempt.Answers.Where(a => a.PointsAwarded.HasValue).Sum(a => a.PointsAwarded.Value);
+            var scorePercentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
+
+            ViewBag.Statistics = new Dictionary<string, object>
+    {
+        { "TotalQuestions", totalQuestions },
+        { "AnsweredQuestions", answeredQuestions },
+        { "CorrectAnswers", correctAnswers },
+        { "IncorrectAnswers", incorrectAnswers },
+        { "PendingReview", pendingReview },
+        { "TotalPoints", totalPoints },
+        { "EarnedPoints", earnedPoints },
+        { "ScorePercentage", scorePercentage }
+    };
+
+            // Get previous attempts for comparison
+            var previousAttempts = await _context.StudentQuizAttempts
+                .Where(a => a.QuizId == attempt.QuizId && a.StudentId == userId && a.IsSubmitted && a.AttemptId != attemptId)
+                .OrderByDescending(a => a.SubmissionTime)
+                .Select(a => new
+                {
+                    a.AttemptId,
+                    a.StartTime,
+                    a.SubmissionTime,
+                    a.Score
+                })
+                .ToListAsync();
+
+            ViewBag.PreviousAttempts = previousAttempts;
+
+            // Set ViewBag values for display
+            ViewBag.CurrentDateTime = "2025-05-15 12:52:14";
+            ViewBag.CurrentUser = "NiqueWrld";
+
+            return View(attempt);
         }
 
         public async Task<IActionResult> TrackApplications()

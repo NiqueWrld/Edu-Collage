@@ -1,0 +1,182 @@
+﻿@model WebApplication1.Models.StudentQuizAttempt
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = $"Taking: {Model.Quiz.Title}";
+    var totalQuestions = Model.Quiz.Questions.Count;
+    var answeredCount = Model.Answers.Count(a => !string.IsNullOrWhiteSpace(a.Answer));
+    double progressPercent = totalQuestions > 0 ? (double)answeredCount / totalQuestions * 100 : 0;
+
+    // Timer setup
+    TimeSpan? remainingTime = null;
+    DateTime? endTimeUtc = null;
+    if (Model.Quiz.TimeLimit > 0)
+    {
+        var endTime = Model.StartTime.AddMinutes(Model.Quiz.TimeLimit);
+        endTimeUtc = endTime.ToUniversalTime(); // ✅ Ensures consistency with client
+        var now = DateTime.UtcNow;
+        remainingTime = endTimeUtc - now;
+        if (remainingTime.Value.TotalSeconds < 0)
+        {
+            remainingTime = TimeSpan.FromMinutes(10);
+        }
+    }
+}
+
+
+<div class="bg-gray-50 min-h-screen">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <form id="quizForm" method="post" asp-action="SubmitQuiz" asp-route-attemptId="@Model.AttemptId">
+            @Html.AntiForgeryToken()
+
+            <!-- Quiz Header -->
+            <div class="sticky top-0 z-10 bg-gray-50 pb-3">
+                <div class="bg-white shadow-md rounded-lg">
+                    <div class="px-4 py-3 flex justify-between items-center flex-wrap">
+                        <div>
+                            <h1 class="text-lg font-bold text-gray-900 truncate">@Model.Quiz.Title</h1>
+                            <p class="mt-1 text-xs text-gray-500">
+                                @Model.Quiz.Module?.ModuleName (@Model.Quiz.Module?.ModuleCode)
+                            </p>
+                        </div>
+                        <div class="flex items-center mt-2 sm:mt-0">
+                            @if (remainingTime.HasValue)
+                            {
+                               @* <div id="timer" class="px-3 py-1 bg-orange-50 border border-orange-200 rounded-md text-orange-700 font-mono"
+                                     data-end-time="@Model.StartTime.AddMinutes(Model.Quiz.TimeLimit).ToString("yyyy-MM-ddTHH:mm:ss")">
+                                    @(remainingTime.Value.Hours.ToString("00")):@(remainingTime.Value.Minutes.ToString("00")):@(remainingTime.Value.Seconds.ToString("00"))
+                                </div>
+                                *@
+                            }
+                            <button type="submit" class="ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Submit Quiz
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 h-2">
+                        <div id="progress-bar" class="bg-indigo-600 h-2 transition-all" style="width: @progressPercent%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="space-y-8 mt-8">
+                @foreach (var question in Model.Quiz.Questions.OrderBy(q => q.QuestionId))
+                {
+                    var answer = Model.Answers.FirstOrDefault(a => a.QuestionId == question.QuestionId);
+                    <div class="bg-white shadow rounded-lg p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-base font-medium text-gray-900">
+                                Question @((Model.Quiz.Questions.OrderBy(q => q.QuestionId).ToList().IndexOf(question) + 1)) of @totalQuestions
+                            </h3>
+                            <span class="text-sm text-gray-500">@question.Points point@(question.Points != 1 ? "s" : "")</span>
+                        </div>
+                        <div class="mb-4">
+                            <p class="text-gray-900 whitespace-pre-line">@question.QuestionText</p>
+                            @if (!string.IsNullOrEmpty(question.ImageUrl))
+                            {
+                                <div class="mt-2 mb-4">
+                                    <img src="@question.ImageUrl" alt="Question image" class="max-h-64 object-contain rounded border border-gray-200" />
+                                </div>
+                            }
+                        </div>
+                        <div>
+                            @if (question.Type == QuestionType.MultipleChoice)
+                            {
+                                var options = !string.IsNullOrEmpty(question.OptionsJson)
+                                ? JsonSerializer.Deserialize<List<string>>(question.OptionsJson)
+                                : new List<string>();
+                                foreach (var option in options)
+                                {
+                                    var optionId = $"q{question.QuestionId}_opt{options.IndexOf(option)}";
+                                    var isSelected = answer != null && answer.Answer == option;
+                                    <div class="flex items-center mb-2">
+                                        <input type="radio" id="@optionId"
+                                               name="answer_@question.QuestionId"
+                                               value="@option"
+                                        @(isSelected ? "checked" : "")
+                                               class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                                        <label for="@optionId" class="ml-3 block text-sm font-medium text-gray-700">
+                                            @option
+                                        </label>
+                                    </div>
+                                }
+                            }
+                            else if (question.Type == QuestionType.ShortAnswer)
+                            {
+                                <textarea id="answer_@question.QuestionId"
+                                          name="answer_@question.QuestionId"
+                                          rows="3"
+                                          class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">@answer?.Answer</textarea>
+                            }
+                            else if (question.Type == QuestionType.TrueFalse)
+                            {
+                                foreach (var option in new[] { "True", "False" })
+                                {
+                                    var optionId = $"q{question.QuestionId}_{option}";
+                                    var isSelected = answer != null && answer.Answer == option;
+                                    <div class="flex items-center mb-2">
+                                        <input type="radio" id="@optionId"
+                                               name="answer_@question.QuestionId"
+                                               value="@option"
+                                        @(isSelected ? "checked" : "")
+                                               class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                                        <label for="@optionId" class="ml-3 block text-sm font-medium text-gray-700">
+                                            @option
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Quiz Footer -->
+            <div class="mt-8 flex justify-end">
+                <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Submit Quiz
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Timer functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const timer = document.getElementById('timer');
+            if (timer) {
+                const endTime = new Date(timer.dataset.endTime);
+                const updateTimer = () => {
+                    const now = new Date();
+                    const diff = Math.max(0, Math.floor((endTime - now) / 1000));
+                    if (diff <= 0) {
+                        timer.textContent = "00:00:00";
+                        timer.classList.remove('bg-orange-50', 'text-orange-700');
+                        timer.classList.add('bg-red-50', 'text-red-700');
+                        //document.getElementById('quizForm').submit();
+                        return;
+                    }
+                    const hours = Math.floor(diff / 3600);
+                    const minutes = Math.floor((diff % 3600) / 60);
+                    const seconds = diff % 60;
+                    timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    if (diff <= 300) {
+                        timer.classList.remove('bg-orange-50', 'text-orange-700');
+                        timer.classList.add('bg-red-50', 'text-red-700');
+                    }
+                };
+                updateTimer();
+                setInterval(updateTimer, 1000);
+            }
+        });
+    </script>
+}

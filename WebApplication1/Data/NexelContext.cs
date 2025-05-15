@@ -27,17 +27,63 @@ public class NexelContext : IdentityDbContext<IdentityUser>
     .HasOne(a => a.Payment)
     .WithMany()
     .HasForeignKey(a => a.PaymentId)
-    .OnDelete(DeleteBehavior.Restrict); // or DeleteBehavior.NoAction (EF Core 5+)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        // Configure many-to-many relationship between Module and Lecturer
+        builder.Entity<ModuleLecturer>()
+            .HasOne(ml => ml.Module)
+            .WithMany()
+            .HasForeignKey(ml => ml.ModuleId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ModuleLecturer>()
+            .HasOne(ml => ml.Lecturer)
+            .WithMany()
+            .HasForeignKey(ml => ml.LecturerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure Quiz relationships - use NoAction to prevent cascading deletes
+        builder.Entity<QuizQuestion>()
+            .HasOne(q => q.Quiz)
+            .WithMany(q => q.Questions)
+            .HasForeignKey(q => q.QuizId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Fix the cascade delete issue for StudentQuizAttempts
+        builder.Entity<StudentQuizAttempt>()
+            .HasOne(sqa => sqa.Quiz)
+            .WithMany(q => q.Attempts)
+            .HasForeignKey(sqa => sqa.QuizId)
+            .OnDelete(DeleteBehavior.NoAction); // Using NoAction instead of Cascade
+
+        // Configure StudentAnswer relationships to avoid multiple cascade paths
+        builder.Entity<StudentAnswer>()
+            .HasOne(sa => sa.Question)
+            .WithMany(q => q.StudentAnswers)
+            .HasForeignKey(sa => sa.QuestionId)
+            .OnDelete(DeleteBehavior.NoAction); // Using NoAction instead of Cascade
+
+        builder.Entity<StudentAnswer>()
+            .HasOne(sa => sa.Attempt)
+            .WithMany(a => a.Answers)
+            .HasForeignKey(sa => sa.AttemptId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
     public DbSet<Student> Students { get; set; }
     public DbSet<Course> Courses { get; set; }
     public DbSet<Module> Modules { get; set; }
     public DbSet<Application> Applications { get; set; }
-    public DbSet<Performance> Performances { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<LibraryBooking> LibraryBookings { get; set; }
 
     public DbSet<LibraryResource> LibraryResources { get; set; }
     public DbSet<ResourceBooking> ResourceBookings { get; set; }
+
+    public DbSet<ModuleLecturer> ModuleLecturers { get; set; }
+    public DbSet<StudyMaterial> StudyMaterials { get; set; }
+    public DbSet<Quiz> Quizzes { get; set; }
+    public DbSet<QuizQuestion> QuizQuestions { get; set; }
+    public DbSet<StudentQuizAttempt> StudentQuizAttempts { get; set; }
+    public DbSet<StudentAnswer> StudentAnswers { get; set; }
 }

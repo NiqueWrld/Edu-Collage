@@ -1,0 +1,102 @@
+﻿@model IEnumerable<WebApplication1.Models.Module>
+@{
+    ViewData["Title"] = "My Modules";
+    var currentDateTime = DateTime.Now;
+    var currentUser = User.Identity.Name; ;
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header with user info and current time -->
+        <div class="mb-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">My Modules</h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    Welcome, @currentUser! Here are your enrolled modules.
+                </p>
+            </div>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No modules found</h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    You are not enrolled in any modules at the moment.
+                </p>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <ul class="divide-y divide-gray-200">
+                    @foreach (var module in Model)
+                    {
+                        <li>
+                            <a href="@Url.Action("ModuleDetails", new { id = module.ModuleId })" class="block hover:bg-gray-50">
+                                <div class="px-4 py-4 sm:px-6">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                <span class="text-indigo-600 font-semibold text-sm">@module.Course.CourseCode</span>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-indigo-600">@module.ModuleName</div>
+                                                <div class="text-sm text-gray-500">@module.Course.CourseCode - @module.Course.CourseName</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="inline-flex items-center text-sm text-gray-500">
+                                                @{
+                                                    var materialCount = 0;
+                                                    var quizCount =  0;
+                                                }
+
+                                                @if (materialCount > 0)
+                                                {
+                                                    <span class="mr-3 flex items-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                        @materialCount materials
+                                                    </span>
+                                                }
+
+                                                @if (quizCount > 0)
+                                                {
+                                                    <span class="flex items-center">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                        </svg>
+                                                        @quizCount quizzes
+                                                    </span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="ml-2 flex-shrink-0">
+                                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Current user: @currentUser");
+            console.log("Current time: @currentDateTime");
+        });
+    </script>
+}

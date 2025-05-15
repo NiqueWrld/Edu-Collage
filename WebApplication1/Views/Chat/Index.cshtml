@@ -9,46 +9,55 @@
     var moduleName = ViewBag.ModuleName;
 }
 
-<div class="container">
-    <h2>@moduleName - Group Chat</h2>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-XzPWZxA+XgiHT+2F8H9sDhPLqvNfXYIvLGS+aSOJz7MTIxwUubtEOyAHr0SL5gtF"
+      crossorigin="anonymous" />
 
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <div class="chat-container card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Group Messages</h5>
-                    <div>
-                        <button id="audio-call-btn" class="btn btn-sm btn-outline-primary me-2">
+<div class="container mx-auto px-4 py-6">
+    <h2 class="text-2xl font-semibold mb-4">@moduleName - Group Chat</h2>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Chat section -->
+        <div class="w-full lg:w-2/3">
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col h-[600px]">
+                <div class="bg-gray-100 px-4 py-3 flex justify-between items-center border-b">
+                    <h5 class="text-lg font-medium">Group Messages</h5>
+                    <div class="flex gap-2">
+                        <button id="audio-call-btn" class="flex items-center gap-1 px-3 py-1 border border-blue-500 text-blue-500 rounded hover:bg-blue-50 text-sm">
                             <i class="bi bi-telephone-fill"></i> Call
                         </button>
-                        <button id="video-call-btn" class="btn btn-sm btn-outline-success">
+                        <button id="video-call-btn" class="flex items-center gap-1 px-3 py-1 border border-green-500 text-green-500 rounded hover:bg-green-50 text-sm">
                             <i class="bi bi-camera-video-fill"></i> Video
                         </button>
                     </div>
                 </div>
-                <div id="message-list" class="card-body message-list">
-                    <!-- Messages will be displayed here -->
-                    <div class="text-center text-muted py-3">
+
+                <div id="message-list" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+                    <div class="text-center text-gray-400 py-6">
                         <p>Loading messages...</p>
                     </div>
                 </div>
-                <div class="card-footer p-2">
-                    <div class="input-group">
-                        <textarea id="message-text" class="form-control" placeholder="Type your message..." rows="2"></textarea>
-                        <button id="send-message" class="btn btn-primary">Send</button>
+
+                <div class="border-t p-3 bg-white">
+                    <div class="flex items-end gap-2">
+                        <textarea id="message-text" rows="2" class="flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message..."></textarea>
+                        <button id="send-message" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md">Send</button>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Users Online <span id="online-users-count" class="badge bg-success">0</span></h5>
+
+        <!-- Online users section -->
+        <div class="w-full lg:w-1/3">
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden">
+                <div class="bg-gray-100 px-4 py-3 border-b flex justify-between items-center">
+                    <h5 class="text-lg font-medium">Users Online</h5>
+                    <span id="online-users-count" class="bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full">0</span>
                 </div>
-                <div class="card-body p-0">
-                    <ul id="online-users-list" class="list-group list-group-flush">
-                        <!-- Online users will be displayed here -->
-                        <li class="list-group-item text-center text-muted py-3">Loading users...</li>
+                <div class="max-h-[600px] overflow-y-auto">
+                    <ul id="online-users-list" class="divide-y">
+                        <li class="text-center text-gray-400 py-4">Loading users...</li>
                     </ul>
                 </div>
             </div>
@@ -57,117 +66,138 @@
 </div>
 
 <!-- Video Call Modal -->
-<div class="modal fade" id="video-call-modal" tabindex="-1" aria-labelledby="video-call-modal-label" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="video-call-modal-label">
-                    <i class="bi bi-camera-video-fill me-2"></i>Video Call
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div id="video-call-modal" tabindex="-1" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-5xl mx-4">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h5 class="text-lg font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M0 5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v.5l3-1.5v7L11 9.5V10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5z" />
+                </svg>
+                Video Call
+            </h5>
+            <button type="button" class="text-gray-500 hover:text-red-500" onclick="document.getElementById('video-call-modal').classList.add('hidden')">
+                <span class="sr-only">Close</span>
+                &times;
+            </button>
+        </div>
+        <div class="relative bg-gray-900">
+            <!-- Remote Video -->
+            <video id="remote-video" autoplay class="w-full h-[400px] object-cover bg-black"></video>
+
+            <!-- Local Video Overlay -->
+            <div class="absolute bottom-4 right-4 w-32 h-24 border-2 border-white rounded overflow-hidden shadow-lg">
+                <video id="local-video" autoplay muted class="w-full h-full object-cover"></video>
             </div>
-            <div class="modal-body p-0">
-                <div class="call-container">
-                    <div class="row g-0">
-                        <div class="col-12 remote-video-container">
-                            <video id="remote-video" autoplay></video>
-                            <div class="local-video-overlay">
-                                <video id="local-video" autoplay muted></video>
-                            </div>
-                            <div id="call-participants-count" class="participants-indicator">
-                                <i class="bi bi-people-fill"></i> <span>1</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
+            <!-- Participants Count -->
+            <div id="call-participants-count" class="absolute top-4 left-4 bg-white text-sm px-3 py-1 rounded-full shadow flex items-center space-x-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-700" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M13 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0zM9 9a3 3 0 0 1 6 0v1H9V9zM3 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-1 1a3 3 0 0 1 6 0v1H2V9z" />
+                </svg>
+                <span>1</span>
             </div>
-            <div class="modal-footer justify-content-center">
-                <button id="toggle-video-btn" type="button" class="btn btn-outline-primary me-2">
-                    <i class="bi bi-camera-video-fill"></i>
-                </button>
-                <button id="toggle-audio-btn" type="button" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-mic-fill"></i>
-                </button>
-                <button id="end-call-btn" type="button" class="btn btn-danger">
-                    <i class="bi bi-telephone-x-fill"></i> End Call
-                </button>
-            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center items-center gap-4 py-4 border-t">
+            <button id="toggle-video-btn" class="flex items-center justify-center px-4 py-2 border border-blue-500 text-blue-600 rounded hover:bg-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M0 5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v.5l3-1.5v7L11 9.5V10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5z" />
+                </svg>
+            </button>
+            <button id="toggle-audio-btn" class="flex items-center justify-center px-4 py-2 border border-gray-500 text-gray-700 rounded hover:bg-gray-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 12a3.001 3.001 0 0 0 2.995-2.824L11 9V5a3 3 0 0 0-5.995-.176L5 5v4a3 3 0 0 0 3 3z" />
+                    <path d="M8 13.5a5.507 5.507 0 0 0 4.473-2.267.5.5 0 1 1 .807.589A6.5 6.5 0 0 1 1.72 11.822a.5.5 0 0 1 .807-.588A5.507 5.507 0 0 0 8 13.5z" />
+                </svg>
+            </button>
+            <button id="end-call-btn" class="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3.654 1.328a.678.678 0 0 1 .638-.057l2.5 1a.678.678 0 0 1 .354.354l1 2.5a.678.678 0 0 1-.057.638L7.414 7.414l1.793 1.793a1 1 0 0 1 0 1.414l-1.414 1.414a1 1 0 0 1-1.414 0L5 10.242l-1.793 1.793a.678.678 0 0 1-.638.057l-2.5-1a.678.678 0 0 1-.354-.354l-1-2.5a.678.678 0 0 1 .057-.638L2.586 8.586 0.793 6.793a1 1 0 0 1 0-1.414L2.207 3.965a1 1 0 0 1 1.414 0l1.793 1.793L3.654 1.328z" />
+                </svg>
+                End Call
+            </button>
         </div>
     </div>
 </div>
 
+
 <!-- Audio Call Modal -->
-<div class="modal fade" id="audio-call-modal" tabindex="-1" aria-labelledby="audio-call-modal-label" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="audio-call-modal-label">
-                    <i class="bi bi-telephone-fill me-2"></i>Audio Call
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div id="audio-call-modal" tabindex="-1" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h5 class="text-lg font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M3.654 1.328a.678.678 0 0 1 .638-.057l2.5 1a.678.678 0 0 1 .354.354l1 2.5a.678.678 0 0 1-.057.638L7.414 7.414l1.793 1.793a1 1 0 0 1 0 1.414l-1.414 1.414a1 1 0 0 1-1.414 0L5 10.242l-1.793 1.793a.678.678 0 0 1-.638.057l-2.5-1a.678.678 0 0 1-.354-.354l-1-2.5a.678.678 0 0 1 .057-.638L2.586 8.586 0.793 6.793a1 1 0 0 1 0-1.414L2.207 3.965a1 1 0 0 1 1.414 0l1.793 1.793L3.654 1.328z" />
+                </svg>
+                Audio Call
+            </h5>
+            <button type="button" class="text-gray-500 hover:text-red-500 text-2xl" onclick="document.getElementById('audio-call-modal').classList.add('hidden')">
+                &times;
+            </button>
+        </div>
+        <div class="text-center px-6 py-4">
+            <div class="mb-3 text-gray-700 text-6xl">
+                <i class="bi bi-people-circle"></i>
             </div>
-            <div class="modal-body text-center">
-                <div class="audio-call-container">
-                    <div class="caller-avatar mb-3">
-                        <i class="bi bi-people-circle" style="font-size: 4rem;"></i>
-                    </div>
-                    <h5 id="caller-name" class="mb-4">Group Call</h5>
-                    <div id="call-status" class="text-muted mb-2">Connecting...</div>
-                    <div id="call-timer" class="mb-3">00:00</div>
-                    <div id="audio-participants-count" class="mb-2">
-                        <i class="bi bi-people-fill"></i> <span>1</span> participants
-                    </div>
-                </div>
+            <h5 id="caller-name" class="text-xl font-semibold mb-2">Group Call</h5>
+            <div id="call-status" class="text-gray-500 mb-1">Connecting...</div>
+            <div id="call-timer" class="text-lg font-mono mb-3">00:00</div>
+            <div id="audio-participants-count" class="text-gray-700">
+                <i class="bi bi-people-fill"></i> <span>1</span> participants
             </div>
-            <div class="modal-footer justify-content-center">
-                <button id="toggle-audio-only-btn" type="button" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-mic-fill"></i>
-                </button>
-                <button id="end-audio-call-btn" type="button" class="btn btn-danger">
-                    <i class="bi bi-telephone-x-fill"></i> End Call
-                </button>
-            </div>
+        </div>
+        <div class="flex justify-center gap-4 px-6 py-4 border-t">
+            <button id="toggle-audio-only-btn" class="px-4 py-2 border border-gray-400 text-gray-700 rounded hover:bg-gray-100">
+                <i class="bi bi-mic-fill"></i>
+            </button>
+            <button id="end-audio-call-btn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                <i class="bi bi-telephone-x-fill"></i> End Call
+            </button>
         </div>
     </div>
 </div>
 
 <!-- Incoming Call Notification -->
-<div id="incoming-call-notification" class="incoming-call-notification">
-    <div class="incoming-call-card">
-        <div class="incoming-call-header">
+<div id="incoming-call-notification" class="fixed bottom-6 left-6 z-50 bg-white border border-gray-200 rounded-lg shadow-lg w-full max-w-sm p-4 hidden">
+    <div class="flex items-center gap-3">
+        <div class="text-green-600 text-3xl">
             <i id="incoming-call-icon" class="bi bi-telephone-fill"></i>
-            <span id="incoming-call-type">Incoming Call</span>
         </div>
-        <div class="incoming-call-body">
-            <div class="caller-info">
-                <div class="caller-avatar">
+        <div>
+            <span id="incoming-call-type" class="text-sm font-medium text-gray-500">Incoming Call</span>
+            <div class="flex items-center gap-3 mt-1">
+                <div class="text-3xl text-gray-700">
                     <i class="bi bi-person-circle"></i>
                 </div>
-                <div class="caller-details">
-                    <h5 id="incoming-caller-name">Unknown Caller</h5>
-                    <p id="incoming-call-text">is calling you</p>
+                <div>
+                    <h5 id="incoming-caller-name" class="font-semibold">Unknown Caller</h5>
+                    <p id="incoming-call-text" class="text-sm text-gray-500">is calling you</p>
                 </div>
             </div>
         </div>
-        <div class="incoming-call-actions">
-            <button id="reject-call-btn" class="btn btn-danger">
-                <i class="bi bi-telephone-x-fill"></i> Reject
-            </button>
-            <button id="accept-call-btn" class="btn btn-success">
-                <i class="bi bi-telephone-forward-fill"></i> Accept
-            </button>
-        </div>
+    </div>
+    <div class="mt-4 flex justify-end gap-3">
+        <button id="reject-call-btn" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+            <i class="bi bi-telephone-x-fill"></i> Reject
+        </button>
+        <button id="accept-call-btn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            <i class="bi bi-telephone-forward-fill"></i> Accept
+        </button>
     </div>
 </div>
 
 <!-- Ongoing Call Banner -->
-<div id="ongoing-call-banner" class="ongoing-call-banner">
-    <div class="ongoing-call-info">
-        <i id="ongoing-call-icon" class="bi bi-telephone-fill me-2"></i>
-        <span>Active group call in progress</span>
+<div id="ongoing-call-banner" class="fixed top-0 left-0 w-full z-40 bg-blue-600 text-white flex items-center justify-between px-4 py-2 hidden">
+    <div class="flex items-center gap-2">
+        <i id="ongoing-call-icon" class="bi bi-telephone-fill text-lg"></i>
+        <span class="text-sm">Active group call in progress</span>
     </div>
-    <button id="join-ongoing-call-btn" class="btn btn-sm btn-primary">Join Call</button>
+    <button id="join-ongoing-call-btn" class="bg-white text-blue-600 px-3 py-1 rounded hover:bg-gray-100 text-sm">
+        Join Call
+    </button>
 </div>
+
 
 @if (SignInManager.IsSignedIn(User))
 {
@@ -239,28 +269,15 @@
             let ongoingGroupCall = null;
             let callRingtone = null;
             let callParticipants = new Set();
-            let videoCallModal_bs = null;
             let audioCallModal_bs = null;
 
             // Initialize Bootstrap modals
-            if (typeof bootstrap !== 'undefined') {
-                videoCallModal_bs = new bootstrap.Modal(videoCallModal);
-                audioCallModal_bs = new bootstrap.Modal(audioCallModal);
-
-                // Handle modal close event to end call
-                videoCallModal.addEventListener('hidden.bs.modal', () => {
-                    if (activeCall) endCurrentCall();
-                });
-
-                audioCallModal.addEventListener('hidden.bs.modal', () => {
-                    if (activeCall) endCurrentCall();
-                });
-            }
+           
 
             // Create audio element for ringtone
             function initializeRingtone() {
                 try {
-                    callRingtone = new Audio("/sounds/ringtone.mp3"); // Ensure you have this file in your wwwroot/sounds folder
+                    callRingtone = new Audio("https://dw.zobj.net/download/v1/bs6sknzp_KvDMfn_lHax40NQR76GV8sx3NXO-gRBLy-FOX3YKpHSP2uWiT-fmxLBm5i0UqhovoGdYQPbim_hC6fVQQnE7ufJQt87iWGChl_VNYrktUyy9XUW_GY4/?a=&c=72&f=iphone.mp3&special=1747316049-p8COPLlXkpb40mnEFo8GAMI%2F8NlVgMndI4U7bVGpDzE%3D"); // Ensure you have this file in your wwwroot/sounds folder
                     callRingtone.loop = true;
                 } catch (error) {
                     console.warn("Could not initialize ringtone:", error);
@@ -760,7 +777,7 @@
                 incomingCallText.textContent = 'is calling the group';
 
                 // Show the notification
-                incomingCallNotification.classList.add('active');
+               incomingCallNotification.classList.remove('hidden');
 
                 // Automatically hide notification after 30 seconds if not answered
                 setTimeout(() => {
@@ -773,7 +790,7 @@
 
             // Hide the incoming call notification
             function hideIncomingCallNotification() {
-                incomingCallNotification.classList.remove('active');
+                incomingCallNotification.classList.add('hidden');
                 incomingCallData = null;
             }
 
@@ -830,7 +847,7 @@
 
                     // Show appropriate modal based on call type
                     if (isVideoCall) {
-                        if (videoCallModal_bs) videoCallModal_bs.show();
+                      videoCallModal.removeClass("hidden");
                     } else {
                         if (audioCallModal_bs) audioCallModal_bs.show();
                         callerName.textContent = "Group Call";
@@ -898,7 +915,7 @@
 
                 // Display appropriate modal
                 if (isVideoCall) {
-                    if (videoCallModal_bs) videoCallModal_bs.show();
+                   incomingCallNotification.classList.remove('hidden');
                 } else {
                     if (audioCallModal_bs) audioCallModal_bs.show();
                     callerName.textContent = "Group Call";
@@ -1070,8 +1087,8 @@
 
             // Hide call UI elements
             function hideCallUI() {
-                if (videoCallModal_bs) videoCallModal_bs.hide();
-                if (audioCallModal_bs) audioCallModal_bs.hide();
+               videoCallModal.classList.remove('hidden');
+               audioCallModal.classList.remove('hidden');
             }
 
             // Start call timer
@@ -1348,7 +1365,7 @@
 
                         // Show appropriate modal based on call type
                         if (isVideoCall) {
-                            if (videoCallModal_bs) videoCallModal_bs.show();
+                           videoCallModal.classList.remove('hidden');
                         } else {
                             if (audioCallModal_bs) audioCallModal_bs.show();
                             callerName.textContent = "Group Call";
@@ -1643,4 +1660,4 @@
             z-index: 1070;
         }
     </style>
-}
+}   
