@@ -77,7 +77,7 @@ namespace WebApplication1.Models
         // Application Fee
         [Column(TypeName = "decimal(18,2)")]
         [Display(Name = "Application Fee")]
-        public decimal ApplicationFee { get; set; } = 50.00M;
+        public decimal ApplicationFee { get; set; } = 45000.00M;
 
         // Payment is nullable since it will only be required after approval
         public int? PaymentId { get; set; }
