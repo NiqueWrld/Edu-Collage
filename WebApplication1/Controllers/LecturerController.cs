@@ -587,6 +587,7 @@ namespace WebApplication1.Controllers
                 {
                     QuizId = model.QuizId,
                     QuestionText = model.QuestionText,
+
                     Type = model.Type,
                     Points = model.Points
                 };

@@ -2,8 +2,6 @@
 
 @{
     ViewData["Title"] = "Create Application";
-    var currentDateTime = "2025-05-13 13:41:26";
-    var currentUser = "NiqueWrld";
 }
 
 <div class="bg-gray-50 min-h-screen py-8">
@@ -42,7 +40,7 @@
                             <div class="sm:col-span-3">
                                 <label asp-for="FirstName" class="block text-sm font-medium text-gray-700">First Name</label>
                                 <div class="mt-1">
-                                    <input asp-for="FirstName" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    <input asp-for="FirstName" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="FirstName" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
@@ -50,7 +48,7 @@
                             <div class="sm:col-span-3">
                                 <label asp-for="LastName" class="block text-sm font-medium text-gray-700">Last Name</label>
                                 <div class="mt-1">
-                                    <input asp-for="LastName" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    <input asp-for="LastName" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="LastName" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
@@ -58,15 +56,20 @@
                             <div class="sm:col-span-3">
                                 <label asp-for="PhoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
                                 <div class="mt-1">
-                                    <input asp-for="PhoneNumber" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    <input asp-for="PhoneNumber" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="PhoneNumber" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
 
                             <div class="sm:col-span-3">
-                                <label asp-for="DateOfBirth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                <input asp-for="DateOfBirth"
+                                       required
+                                       type="date"
+                                       id="dob"
+                                       class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+
                                 <div class="mt-1">
-                                    <input asp-for="DateOfBirth" type="date" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                   
                                     <span asp-validation-for="DateOfBirth" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
@@ -112,7 +115,7 @@
                             <div class="sm:col-span-6">
                                 <label asp-for="IdentificationDocumentPath" class="block text-sm font-medium text-gray-700">ID Document</label>
                                 <div class="mt-1">
-                                    <input asp-for="IdentificationDocumentPath" type="file" accept="image/*" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    <input asp-for="IdentificationDocumentPath" required type="file" accept="image/*" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="IdentificationDocumentPath" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
@@ -120,7 +123,7 @@
                             <div class="sm:col-span-6">
                                 <label asp-for="AcademicRecordsPath" class="block text-sm font-medium text-gray-700">Academic Records</label>
                                 <div class="mt-1">
-                                    <input asp-for="AcademicRecordsPath" type="file" accept="image/*" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
+                                    <input asp-for="AcademicRecordsPath" type="file" required accept="image/*" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" />
                                     <span asp-validation-for="AcademicRecordsPath" class="text-xs text-red-500"></span>
                                 </div>
                             </div>
@@ -164,4 +167,13 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // Set the max date to today minus 16 years
+        const dobInput = document.getElementById("dob");
+        const today = new Date();
+        const year = today.getFullYear() - 16;
+        const month = (today.getMonth() + 1).toString().padStart(2, '0');
+        const day = today.getDate().toString().padStart(2, '0');
+        dobInput.max = `${year}-${month}-${day}`;
+    </script>
 }

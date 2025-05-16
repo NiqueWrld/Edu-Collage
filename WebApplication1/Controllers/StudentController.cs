@@ -192,7 +192,7 @@ namespace WebApplication1.Controllers
 
         public async Task<IActionResult> Materials()
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -200,10 +200,20 @@ namespace WebApplication1.Controllers
             }
 
             var applications = await _context.Applications
-                .Where(e => e.IdentityUserId == userId)
-                .Include(e => e.Course)
-                .ThenInclude(c => c.Modules)
-                .ToListAsync();
+     .Where(e => e.IdentityUserId == userId
+                 && e.Status == Application.ApplicationStatus.Approved
+                 && e.PaymentId != null)
+     .Include(e => e.Course)
+         .ThenInclude(c => c.Modules)
+     .ToListAsync();
+
+
+
+            if (!applications.Any())
+            {
+                // The student hasn't completed enrollment yet
+                return View("NotEnrolled");
+            }
 
             // Extract all modules
             var modules = applications
