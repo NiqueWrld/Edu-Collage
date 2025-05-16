@@ -155,8 +155,7 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStudyMaterial(AddStudyMaterialViewModel model)
         {
-            if (ModelState.IsValid)
-            {
+           
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 // Check if lecturer is assigned to this module
@@ -204,7 +203,7 @@ namespace WebApplication1.Controllers
 
                 TempData["SuccessMessage"] = "Study material added successfully.";
                 return RedirectToAction(nameof(ModuleDetails), new { id = model.ModuleId });
-            }
+            
 
             return View(model);
         }
@@ -597,6 +596,11 @@ namespace WebApplication1.Controllers
                 {
                     question.OptionsJson = System.Text.Json.JsonSerializer.Serialize(model.Options);
                 }
+
+            if (model.CorrectAnswer == null)
+            {
+                Console.Beep();
+            }
 
                 // Handle correct answer
                 if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)

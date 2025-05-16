@@ -10,7 +10,7 @@ using WebApplication1.Models.ViewModels;
 
 namespace WebApplication1.Controllers
 {
-    [Authorize(Roles = "Student")]
+
     public class CoursesController : Controller
     {
         private readonly NexelContext _context;

@@ -12,11 +12,11 @@
             <p class="mt-2 text-sm text-gray-500">
                 @if (Model.Quiz != null)
                 {
-                    <span>Viewing your attempts for: <span class="font-medium">@Model.Quiz.Title</span></span>
+                    <span>Viewing attempts for: <span class="font-medium">@Model.Quiz.Title</span></span>
                 }
                 else
                 {
-                    <span>View your quiz attempt history and results</span>
+                    <span>View quiz attempt history and results</span>
                 }
             </p>
         </div>
@@ -24,7 +24,7 @@
         @if (Model.Quiz?.Module != null)
         {
             <div class="mb-6 flex items-center">
-                <a href="@Url.Action("ModuleDetails", "Student", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <a href="@Url.Action("ModuleDetails", "Lecturer", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -32,15 +32,6 @@
                 </a>
             </div>
         }
-
-        <div class="mb-4 flex justify-between items-center">
-            <div class="text-sm text-gray-500">
-                Logged in as: <span class="font-medium">@currentUser</span>
-            </div>
-            <div class="text-sm text-gray-500">
-                Last updated: @currentDate.ToString("MMM d, yyyy 'at' HH:mm:ss") UTC
-            </div>
-        </div>
 
         @if (!Model.Attempts.Any())
         {
@@ -53,27 +44,13 @@
                     <p class="mt-1 text-sm text-gray-500">
                         @if (Model.Quiz != null)
                         {
-                            <span>You haven't attempted this quiz yet.</span>
+                            <span>No one attempted this quiz yet.</span>
                         }
                         else
                         {
-                            <span>You haven't attempted any quizzes yet.</span>
+                            <span>No one attempted any quizzes yet.</span>
                         }
                     </p>
-                    <div class="mt-6">
-                        @if (Model.Quiz != null)
-                        {
-                            <a href="@Url.Action("StartQuiz", new { quizId = Model.Quiz.QuizId })" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Start Quiz
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="@Url.Action("Dashboard", "Student")" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Go to Dashboard
-                            </a>
-                        }
-                    </div>
                 </div>
             </div>
         }
@@ -163,21 +140,6 @@
                                                 View Results
                                             </a>
                                         }
-                                        else
-                                        {
-                                            if (!quizEnded)
-                                            {
-                                                <a href="@Url.Action("ContinueQuiz", new { attemptId = attempt.AttemptId })" class="text-indigo-600 hover:text-indigo-900 mr-4">
-                                                    Continue
-                                                </a>
-                                            }
-                                            else
-                                            {
-                                                <a href="@Url.Action("SubmitQuiz", new { attemptId = attempt.AttemptId })" class="text-red-600 hover:text-red-900 mr-4">
-                                                    Submit
-                                                </a>
-                                            }
-                                        }
                                     </td>
                                 </tr>
                             }
@@ -185,27 +147,6 @@
                     </table>
                 </div>
             </div>
-
-            @if (Model.Quiz != null)
-            {
-                <div class="mt-8">
-                    <a href="@Url.Action("StartQuiz", new { quizId = Model.Quiz.QuizId })" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                        </svg>
-                        Start New Attempt
-                    </a>
-                </div>
-            }
         }
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("Current user: @currentUser");
-            console.log("Current time: @currentDate.ToString("yyyy-MM-dd HH:mm:ss")");
-        });
-    </script>
-}
