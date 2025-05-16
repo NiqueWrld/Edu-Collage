@@ -188,40 +188,15 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-               document.addEventListener('DOMContentLoaded', function () {
+                document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             const questionType = document.getElementById('questionType');
             const correctAnswerField = document.getElementById('correctAnswerField');
 
             toggleQuestionFields(); // Initialize on page load
 
-            // Image preview functionality
-            const imageFile = document.getElementById('ImageFile');
-            const imagePreview = document.getElementById('imagePreview');
-            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-            const removeImageButton = document.getElementById('removeImage');
-
-            imageFile.addEventListener('change', function () {
-                if (this.files && this.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        imagePreview.src = e.target.result;
-                        imagePreviewContainer.classList.remove('hidden');
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-
-            removeImageButton.addEventListener('click', function () {
-                imageFile.value = '';
-                imagePreview.src = '#';
-                imagePreviewContainer.classList.add('hidden');
-            });
-
-            // Handle form submission
             form.addEventListener('submit', function (e) {
                 if (questionType.value === '0') { // Multiple Choice
-                    // Get selected radio button value
                     const selectedRadio = document.querySelector('input[name="correctOption"]:checked');
                     if (!selectedRadio) {
                         e.preventDefault();
@@ -231,24 +206,29 @@
 
                     const optionIndex = parseInt(selectedRadio.value);
                     const optionText = document.querySelector(`input[name="Options[${optionIndex}]"]`).value;
+
+                    // Populate the correctAnswer hidden field with the selected option's text
                     correctAnswerField.value = optionText;
+
+                    // Debugging: Log the values to ensure correct behavior
+                    console.log("CorrectOption Index:", optionIndex);
+                    console.log("CorrectAnswer Text:", correctAnswerField.value);
                 }
             });
-        });
 
-        // Toggle question fields based on question type
-        function toggleQuestionFields() {
-            const questionType = document.getElementById('questionType').value;
-            const multipleChoiceSection = document.getElementById('multipleChoiceSection');
-            const shortAnswerSection = document.getElementById('shortAnswerSection');
+            function toggleQuestionFields() {
+                const questionType = document.getElementById('questionType').value;
+                const multipleChoiceSection = document.getElementById('multipleChoiceSection');
+                const shortAnswerSection = document.getElementById('shortAnswerSection');
 
-            if (questionType === '0') { // Multiple Choice
-                multipleChoiceSection.style.display = 'block';
-                shortAnswerSection.style.display = 'none';
-            } else { // Short Answer
-                multipleChoiceSection.style.display = 'none';
-                shortAnswerSection.style.display = 'block';
+                if (questionType === '0') {
+                    multipleChoiceSection.style.display = 'block';
+                    shortAnswerSection.style.display = 'none';
+                } else {
+                    multipleChoiceSection.style.display = 'none';
+                    shortAnswerSection.style.display = 'block';
+                }
             }
-        }
+        });
     </script>
 }

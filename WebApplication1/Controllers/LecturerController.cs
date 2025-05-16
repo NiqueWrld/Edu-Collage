@@ -574,7 +574,7 @@ namespace WebApplication1.Controllers
                     return NotFound();
                 }
 
-                // Check if lecturer is assigned to this module
+                // check if lecturer is assigned to this module
                 var moduleAssignment = await _context.ModuleLecturers
                     .FirstOrDefaultAsync(ml => ml.ModuleId == quiz.ModuleId && ml.LecturerId == userId);
 

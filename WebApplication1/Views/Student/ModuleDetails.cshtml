@@ -1,11 +1,18 @@
 ﻿@model WebApplication1.Models.ViewModels.ModuleDetailsViewModel
 @using System.Security.Claims
 
+@using System
+
 @{
     ViewData["Title"] = Model.Module.ModuleName;
-    var currentDateTime = DateTime.Now;
-    var currentUser = "NiqueWrld";
+
+    // Get South African time zone info
+    var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+
+    // Convert UTC time to South African time
+    var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
 }
+
 
 <div class="bg-gray-50 min-h-screen py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -22,9 +29,6 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-900">@Model.Module.ModuleName (@Model.Module.ModuleCode)</h1>
                 <p class="mt-2 text-sm text-gray-500">@Model.Module.Course.Faculty - @Model.Module.Course.CourseName | Year @Model.Module.Year - @Model.Module.Semester</p>
-            </div>
-            <div class="text-sm text-gray-500">
-                @currentDateTime (UTC)
             </div>
         </div>
 
@@ -127,9 +131,6 @@
         <div class="mb-8">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-900">Quizzes</h2>
-                <span class="text-sm text-gray-500">
-                    Currently logged in as: <span class="font-medium">@currentUser</span>
-                </span>
             </div>
 
             @if (Model.Quizzes.Any())

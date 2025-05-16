@@ -74,6 +74,7 @@ namespace WebApplication1.Controllers
 
             ViewData["ClientToken"] = clientToken;
 
+
             var paymentModel = new PaymentViewModel
             {
                 ApplicationId = application.ApplicationId,
@@ -272,6 +273,13 @@ namespace WebApplication1.Controllers
 
             application.ApplicationDate = DateTime.Now;
             application.Status = Application.ApplicationStatus.Pending;
+
+            var course =  _context.Courses
+                .Include(c => c.Modules)
+                .FirstOrDefault(c => c.Id == application.CourseId);
+
+            application.ApplicationFee = course.Modules.Count() * 4500;
+
             application.IdentityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 
