@@ -30,9 +30,6 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         @Html.DisplayNameFor(model => model.CourseCode)
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
-                        @Html.DisplayNameFor(model => model.Description)
-                    </th>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         @Html.DisplayNameFor(model => model.DurationYears)
                     </th>
@@ -53,9 +50,6 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             @Html.DisplayFor(modelItem => item.CourseCode)
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate hidden md:table-cell">
-                            @Html.DisplayFor(modelItem => item.Description)
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             @Html.DisplayFor(modelItem => item.DurationYears) Years
