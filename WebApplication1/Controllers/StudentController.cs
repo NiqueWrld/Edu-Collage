@@ -407,7 +407,7 @@ namespace WebApplication1.Controllers
             if (attempt == null)
             {
                 TempData["ErrorMessage"] = "Quiz attempt not found.";
-                return RedirectToAction("ModuleList");
+                return RedirectToAction("Materials");
             }
 
             // If not submitted yet, redirect to take quiz
@@ -419,11 +419,14 @@ namespace WebApplication1.Controllers
             // Calculate statistics
             var totalQuestions = attempt.Quiz.Questions.Count;
             var answeredQuestions = attempt.Answers.Count(a => !string.IsNullOrWhiteSpace(a.Answer));
-            var correctAnswers = attempt.Answers.Count(a => a.IsCorrect == true);
-            var incorrectAnswers = attempt.Answers.Count(a => a.IsCorrect == false);
+            var correctAnswers = attempt.Answers.Count(a => a.Answer == a.Question.CorrectAnswer);
+            var incorrectAnswers = attempt.Answers.Count(a => a.Answer != a.Question.CorrectAnswer);
             var pendingReview = attempt.Answers.Count(a => a.IsCorrect == null && !string.IsNullOrWhiteSpace(a.Answer));
             var totalPoints = attempt.Quiz.Questions.Sum(q => q.Points);
-            var earnedPoints = attempt.Answers.Where(a => a.PointsAwarded.HasValue).Sum(a => a.PointsAwarded.Value);
+            var earnedPoints = attempt.Answers
+    .Where(a => a.Answer == a.Question.CorrectAnswer)
+    .Sum(a => a.Question.Points);
+
             var scorePercentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
 
             ViewBag.Statistics = new Dictionary<string, object>

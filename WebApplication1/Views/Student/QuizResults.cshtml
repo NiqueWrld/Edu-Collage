@@ -24,24 +24,7 @@
 
 <div class="bg-gray-50 min-h-screen py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- User and Time Info -->
-        <div class="mb-6 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-3 sm:px-6 flex justify-between">
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span class="text-sm font-medium text-gray-900">@currentUser</span>
-                </div>
-                <div class="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="text-sm text-gray-500">@currentDateTime</span>
-                </div>
-            </div>
-        </div>
-
+      
         <!-- Navigation -->
         <div class="mb-6">
             <a href="@Url.Action("ModuleDetails", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
@@ -135,12 +118,6 @@
                                             <div class="text-2xl font-semibold text-gray-900">
                                                 @stats["CorrectAnswers"] / @stats["AnsweredQuestions"]
                                             </div>
-                                            @if ((int)stats["PendingReview"] > 0)
-                                            {
-                                                <div class="ml-2 flex items-baseline text-sm font-semibold text-yellow-600">
-                                                    (@stats["PendingReview"] pending)
-                                                </div>
-                                            }
                                         </dd>
                                     </dl>
                                 </div>
@@ -318,21 +295,7 @@
                                                 @pointsAwarded / @question.Points points
                                             </span>
                                         }
-                                        else if (!string.IsNullOrWhiteSpace(answer?.Answer))
-                                        {
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 001-1v-4a1 1 0 10-2 0v4a1 1 0 001 1z" clip-rule="evenodd" />
-                                                </svg>
-                                                Pending Review
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                Not Answered
-                                            </span>
-                                        }
+                                       
                                     </div>
                                 </div>
                             </div>
