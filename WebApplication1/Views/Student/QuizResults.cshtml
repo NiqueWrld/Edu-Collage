@@ -409,9 +409,6 @@
             <a href="@Url.Action("ModuleDetails", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                 Return to Module
             </a>
-            <a href="@Url.Action("QuizAttempts", new { quizId = Model.QuizId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
-                View All Attempts
-            </a>
             @*
             @if (Model.Quiz.AllowMultipleAttempts)
             {

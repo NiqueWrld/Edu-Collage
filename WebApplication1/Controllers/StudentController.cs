@@ -298,6 +298,8 @@ namespace WebApplication1.Controllers
         // GET: Student/StartQuiz/5
         public async Task<IActionResult> StartQuiz(int quizId)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var quiz = await _context.Quizzes
                 .Include(q => q.Module)
                 .Include(q => q.Questions)
@@ -305,9 +307,22 @@ namespace WebApplication1.Controllers
 
             if (quiz == null) return NotFound();
 
-            // Check eligibility, etc.
+            var attempt = _context.StudentQuizAttempts
+                .FirstOrDefault(a => a.QuizId == quiz.QuizId && a.StudentId == userId);
 
-            return View(quiz);
+            if(attempt == null){
+
+                return View(quiz);
+            }
+            else if (attempt.IsSubmitted)
+            {
+                return RedirectToAction("QuizResults", new { attempt.AttemptId });
+            }
+            else
+            {
+                return RedirectToAction("QuizResults", new { attempt.AttemptId });
+            }
+
         }
 
 
