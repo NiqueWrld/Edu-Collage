@@ -1,0 +1,37 @@
+﻿@model WebApplication1.Models.Module
+
+@{
+    var isEditing = ViewData["IsEditing"] as bool? ?? false;
+}
+
+<div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 items-start">
+    <dt class="text-sm font-medium text-gray-500">Module Code</dt>
+    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+        @if (!isEditing)
+        {
+            <!-- Display Mode -->
+            <div class="flex justify-between items-center">
+                <span>@Model.ClassDay at @Model.ClassTime</span>
+                <form method="post" asp-action="EditTime" class="ml-4">
+                    <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100">
+                        Change
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <!-- Edit Mode -->
+            <form method="post" asp-action="SaveTime" class="space-y-2">
+                <div class="flex items-center space-x-4">
+                    <input type="text" name="ClassDay" value="@Model.ClassDay" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Class Day" />
+                    <input type="text" name="ClassTime" value="@Model.ClassTime" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Class Time" />
+                </div>
+                <div class="mt-2 space-x-2">
+                    <button type="submit" class="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700">Save</button>
+                    <a asp-action="CancelEdit" class="px-3 py-1.5 text-sm rounded-md text-gray-700 border border-gray-300 hover:bg-gray-100">Cancel</a>
+                </div>
+            </form>
+        }
+    </dd>
+</div>

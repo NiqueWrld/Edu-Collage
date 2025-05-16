@@ -404,6 +404,108 @@ namespace WebApplication1.Controllers
             return RedirectToAction("QuizResults", new { attemptId });
         }
 
+        public async Task<IActionResult> TrackProgress()
+        {
+            // Get current user ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get all attempts with related data
+            var attempts = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Module)
+                .Include(a => a.Answers)
+                .Where(a => a.StudentId == userId)
+                .OrderByDescending(a => a.StartTime)
+                .ToListAsync();
+
+            // Group attempts by quiz
+            var quizGroups = attempts
+                .GroupBy(a => a.Quiz.QuizId)
+                .Select(g => new QuizAttemptsViewModel
+                {
+                    Quiz = g.First().Quiz,
+                    Attempts = g.ToList()
+                })
+                .ToList();
+
+            // Calculate overall statistics
+            var statistics = new Dictionary<string, object>
+    {
+        { "TotalQuizzes", quizGroups.Count },
+        { "TotalAttempts", attempts.Count },
+        { "CompletedAttempts", attempts.Count(a => a.IsSubmitted) },
+        { "AverageScore", attempts.Where(a => a.IsSubmitted && a.Score.HasValue).Select(a => a.Score.Value).DefaultIfEmpty(0).Average() },
+        { "BestOverallScore", attempts.Where(a => a.IsSubmitted && a.Score.HasValue).Select(a => a.Score.Value).DefaultIfEmpty(0).Max() }
+    };
+
+            ViewBag.Statistics = statistics;
+
+            // Set ViewBag values with the exact requested format
+            ViewBag.CurrentDateTime = "2025-05-16 11:06:58";
+            ViewBag.CurrentUser = "NiqueWrld";
+
+            return View(quizGroups);
+        }
+
+        // Action to generate PDF report
+        public async Task<IActionResult> DownloadProgressReport()
+        {
+            // Get current user ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get user details
+            var user = await _userManager.FindByIdAsync(userId);
+
+            // Get all attempts with related data
+            var attempts = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Module)
+                        .ThenInclude(m => m.Course)
+                .Include(a => a.Answers)
+                .Where(a => a.StudentId == userId && a.IsSubmitted)
+                .OrderByDescending(a => a.StartTime)
+                .ToListAsync();
+
+            // Create the report data
+            var reportData = new
+            {
+                UserName = user.UserName,
+                GeneratedDate = "2025-05-16 11:06:58",
+                TotalAttempts = attempts.Count,
+                CompletedAttempts = attempts.Count(a => a.IsSubmitted),
+                AverageScore = attempts.Where(a => a.Score.HasValue)
+                                      .Select(a => a.Score.Value)
+                                      .DefaultIfEmpty(0)
+                                      .Average(),
+                ModuleDetails = attempts
+                    .GroupBy(a => a.Quiz.Module.ModuleId)
+                    .Select(g => new
+                    {
+                        ModuleName = g.First().Quiz.Module.ModuleName,
+                        ModuleCode = g.First().Quiz.Module.ModuleCode,
+                        CourseName = g.First().Quiz.Module.Course.CourseName,
+                        Quizzes = g.GroupBy(a => a.Quiz.QuizId)
+                                   .Select(qg => new
+                                   {
+                                       QuizTitle = qg.First().Quiz.Title,
+                                       AttemptCount = qg.Count(),
+                                       BestScore = qg.Where(a => a.Score.HasValue)
+                                                   .Select(a => a.Score.Value)
+                                                   .DefaultIfEmpty(0)
+                                                   .Max(),
+                                       LastAttemptDate = qg.Max(a => a.StartTime).ToString("yyyy-MM-dd")
+                                   })
+                                   .OrderBy(q => q.QuizTitle)
+                                   .ToList()
+                    })
+                    .OrderBy(m => m.ModuleName)
+                    .ToList()
+            };
+
+            // Pass the data to the client-side for PDF generation
+            return Json(reportData);
+        }
+
         // GET: Student/QuizResults/5
         public async Task<IActionResult> QuizResults(int attemptId)
         {

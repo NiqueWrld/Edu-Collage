@@ -598,6 +598,18 @@ namespace WebApplication1.Controllers
                     question.OptionsJson = System.Text.Json.JsonSerializer.Serialize(model.Options);
                 }
 
+            if (Request.Form.ContainsKey("correctOption"))
+            {
+                int correctOptionIndex = int.Parse(Request.Form["correctOption"]);
+
+                // Use the index to retrieve the correct option's text
+                if (model.Options != null && correctOptionIndex >= 0 && correctOptionIndex < model.Options.Count)
+                {
+                    model.CorrectAnswer = model.Options[correctOptionIndex];
+                }
+            }
+
+
             if (model.CorrectAnswer == null)
             {
                 Console.Beep();
@@ -1021,6 +1033,23 @@ namespace WebApplication1.Controllers
             }
 
             return RedirectToAction(nameof(GradeQuizAttempt), new { id = model.AttemptId });
+        }
+
+        [HttpPost]
+        public IActionResult SaveClassSchedule([FromForm] Module model)
+        {
+            var module = _context.Modules.FirstOrDefault(m => m.ModuleId == model.ModuleId);
+            if (module == null)
+            {
+                return NotFound();
+            }
+
+            module.ClassDay = model.ClassDay;
+            module.ClassTime = model.ClassTime;
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Index");
         }
 
         #endregion

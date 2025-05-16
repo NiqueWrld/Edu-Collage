@@ -19,6 +19,9 @@ namespace WebApplication1.Models
         [Required]
         public string Year { get; set; }
 
+        public DayOfWeek? ClassDay { get; set; }
+        public TimeSpan? ClassTime { get; set; }
+
         public SemesterNumber Semester { get; set; }
 
         public enum SemesterNumber

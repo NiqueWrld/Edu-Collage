@@ -1,0 +1,529 @@
+﻿@model WebApplication1.Models.ViewModels.ModuleStudentProgressViewModel
+@{
+    ViewData["Title"] = "Student Progress";
+    string currentDateTime = "2025-05-16 08:54:46";
+    string currentUser = "NiqueWrld";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header with User Info and Time -->
+        <!-- Breadcrumb Navigation -->
+        <nav class="mb-6 flex items-center space-x-2 text-sm font-medium text-gray-500">
+            <a href="@Url.Action("Index", "Instructor")" class="hover:text-gray-700">Dashboard</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <a href="@Url.Action("ModuleDetails", new { id = Model.Module.ModuleId })" class="hover:text-gray-700">@Model.Module.ModuleName</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-gray-900">Student Progress</span>
+        </nav>
+
+        <!-- Module Header -->
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Student Progress</h1>
+            <div class="flex items-center mt-2">
+                <div class="text-sm text-gray-500">
+                    <span class="font-medium text-gray-900">@Model.Module.ModuleName</span>
+                    <span class="mx-2">•</span>
+                    <span>@Model.Module.ModuleCode</span>
+                    <span class="mx-2">•</span>
+                    <span>@Model.Module.Course.CourseName</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Summary Cards -->
+        <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Students</dt>
+                                <dd class="flex items-baseline">
+                                    <div class="text-2xl font-semibold text-gray-900">@Model.StudentProgressList.Count</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Average Completion Rate</dt>
+                                <dd class="flex items-baseline">
+                                    @{
+                                        double avgCompletionRate = Model.StudentProgressList.Count > 0
+                                        ? Model.StudentProgressList.Average(s => (double)s.CompletedQuizzes / (s.TotalQuizzes > 0 ? s.TotalQuizzes : 1) * 100)
+                                        : 0;
+                                    }
+                                    <div class="text-2xl font-semibold text-gray-900">@avgCompletionRate.ToString("0.0")%</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Average Score</dt>
+                                <dd class="flex items-baseline">
+                                    @{
+                                        double avgScore = Model.StudentProgressList.Count > 0
+                                        ? Model.StudentProgressList.Average(s => s.AverageScore)
+                                        : 0;
+                                    }
+                                    <div class="text-2xl font-semibold text-gray-900">@avgScore.ToString("0.0")</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Quizzes</dt>
+                                <dd class="flex items-baseline">
+                                    @{
+                                        int totalQuizzes = Model.StudentProgressList.FirstOrDefault()?.TotalQuizzes ?? 0;
+                                    }
+                                    <div class="text-2xl font-semibold text-gray-900">@totalQuizzes</div>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="mb-6">
+            <div class="bg-white shadow rounded-lg p-4">
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div class="flex-grow">
+                        <label for="search" class="sr-only">Search students</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="search" name="search" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md" placeholder="Search students...">
+                        </div>
+                    </div>
+                    <div class="flex space-x-3">
+                        <select id="progress-filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="all">All Progress</option>
+                            <option value="completed">Completed All</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="not-started">Not Started</option>
+                        </select>
+                        <select id="sort-by" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="name">Sort by Name</option>
+                            <option value="progress">Sort by Progress</option>
+                            <option value="score">Sort by Score</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Progress Table -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                <h2 class="text-lg leading-6 font-medium text-gray-900">Student Progress</h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Detailed progress tracking for all enrolled students
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="students-table">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Student
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Quizzes Completed
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Progress
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Average Score
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Last Activity
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var studentProgress in Model.StudentProgressList)
+                        {
+                            var progressPercent = studentProgress.TotalQuizzes > 0
+                            ? (int)Math.Round((double)studentProgress.CompletedQuizzes / studentProgress.TotalQuizzes * 100)
+                            : 0;
+
+                            var progressColorClass = progressPercent >= 75 ? "bg-green-500"
+                            : progressPercent >= 50 ? "bg-yellow-500"
+                            : progressPercent >= 25 ? "bg-orange-500"
+                            : "bg-red-500";
+
+                            var lastActivity = studentProgress.QuizAttempts.Any()
+                            ? studentProgress.QuizAttempts.Max(a => a.SubmissionTime ?? a.StartTime)
+                            : (DateTime?)null;
+
+                            var dataAttributes = $"data-name=\"{studentProgress.Student.UserName}\" " +
+                            $"data-progress=\"{progressPercent}\" " +
+                            $"data-score=\"{studentProgress.AverageScore}\" " +
+                            $"data-status=\"{(progressPercent == 100 ? "completed" : progressPercent > 0 ? "in-progress" : "not-started")}\"";
+
+                            <tr class="student-row" @Html.Raw(dataAttributes)>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
+                                            <span class="font-medium text-gray-700">
+                                                @(studentProgress.Student.UserName?.Substring(0, 1))
+                                            </span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                @studentProgress.Student.UserName
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                @studentProgress.Student.Email
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">@studentProgress.CompletedQuizzes / @studentProgress.TotalQuizzes</div>
+                                    <div class="text-sm text-gray-500">@(studentProgress.TotalQuizzes - studentProgress.CompletedQuizzes) remaining</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="@progressColorClass h-2.5 rounded-full" style="width: @(progressPercent)%"></div>
+                                        </div>
+                                        <span class="ml-2 text-sm font-medium text-gray-700">@progressPercent%</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (studentProgress.QuizAttempts.Any(a => a.Score.HasValue))
+                                    {
+                                        <div class="flex items-center">
+                                            @{
+                                                var scoreClass = studentProgress.AverageScore >= 80 ? "text-green-600"
+                                                : studentProgress.AverageScore >= 60 ? "text-yellow-600"
+                                                : "text-red-600";
+                                            }
+                                            <div class="text-sm font-medium @scoreClass">
+                                                @studentProgress.AverageScore.ToString("0.0")
+                                            </div>
+                                            <span class="ml-1 text-sm text-gray-500">/ 100</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sm text-gray-500">Not available</div>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (lastActivity.HasValue)
+                                    {
+                                        <div class="text-sm text-gray-900">@lastActivity.Value.ToString("yyyy-MM-dd")</div>
+                                        <div class="text-sm text-gray-500">@lastActivity.Value.ToString("HH:mm:ss")</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="text-sm text-gray-500">No activity</div>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button type="button" class="text-indigo-600 hover:text-indigo-900 details-btn" data-student-id="@studentProgress.Student.Id">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Hidden details row -->
+                            <tr class="details-row hidden" id="details-@studentProgress.Student.Id">
+                                <td colspan="6" class="px-6 py-4 bg-gray-50">
+                                    <div class="border-t border-b border-gray-200 py-4">
+                                        <h4 class="text-sm font-medium text-gray-700 mb-3">Quiz Details</h4>
+                                        @if (studentProgress.QuizAttempts.Any())
+                                        {
+                                            <div class="overflow-x-auto">
+                                                <table class="min-w-full divide-y divide-gray-200">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quiz</th>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Started</th>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="bg-white divide-y divide-gray-200">
+                                                        @{
+                                                            var groupedAttempts = studentProgress.QuizAttempts
+                                                            .GroupBy(a => a.QuizId)
+                                                            .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.SubmissionTime ?? a.StartTime).ToList());
+
+                                                            foreach (var quiz in Model.StudentProgressList.First().TotalQuizzes > 0 ?
+                                                            Model.StudentProgressList.First().QuizAttempts.Select(a => a.Quiz).DistinctBy(q => q.QuizId) :
+                                                            Array.Empty<Quiz>())
+                                                            {
+                                                                groupedAttempts.TryGetValue(quiz.QuizId, out var attempts);
+                                                                var bestAttempt = attempts?.FirstOrDefault(a => a.IsSubmitted);
+                                                                var latestAttempt = attempts?.FirstOrDefault();
+
+                                                                <tr>
+                                                                    <td class="px-3 py-2 whitespace-nowrap">
+                                                                        <div class="text-xs font-medium text-gray-900">@quiz.Title</div>
+                                                                    </td>
+                                                                    <td class="px-3 py-2 whitespace-nowrap">
+                                                                        @if (bestAttempt != null)
+                                                                        {
+                                                                            <span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full bg-green-100 text-green-800">
+                                                                                Completed
+                                                                            </span>
+                                                                        }
+                                                                        else if (latestAttempt != null)
+                                                                        {
+                                                                            <span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                                                In Progress
+                                                                            </span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                                                Not Started
+                                                                            </span>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="px-3 py-2 whitespace-nowrap">
+                                                                        @if (bestAttempt?.Score != null)
+                                                                        {
+                                                                            <div class="text-xs font-medium
+                                                                                    @(bestAttempt.Score >= 80 ? "text-green-600" :
+                                                                                bestAttempt.Score >= 60 ? "text-yellow-600" : "text-red-600")">
+                                                                                @bestAttempt.Score.Value.ToString("0.0")
+                                                                            </div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <div class="text-xs text-gray-500">-</div>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="px-3 py-2 whitespace-nowrap">
+                                                                        @if (latestAttempt != null)
+                                                                        {
+                                                                            <div class="text-xs text-gray-500">@latestAttempt.StartTime.ToString("yyyy-MM-dd HH:mm")</div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <div class="text-xs text-gray-500">-</div>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="px-3 py-2 whitespace-nowrap">
+                                                                        @if (bestAttempt?.SubmissionTime != null)
+                                                                        {
+                                                                            <div class="text-xs text-gray-500">@bestAttempt.SubmissionTime.Value.ToString("yyyy-MM-dd HH:mm")</div>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <div class="text-xs text-gray-500">-</div>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="px-3 py-2 whitespace-nowrap text-xs">
+                                                                        @if (bestAttempt != null)
+                                                                        {
+                                                                            <a href="@Url.Action("ReviewStudentQuiz", new { attemptId = bestAttempt.AttemptId })" class="text-indigo-600 hover:text-indigo-900">
+                                                                                Review
+                                                                            </a>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-sm text-gray-500">No quiz attempts found for this student.</p>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state -->
+            @if (!Model.StudentProgressList.Any())
+            {
+                <div class="py-10 flex flex-col items-center justify-center">
+                    <svg class="h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <p class="mt-2 text-sm text-gray-500">No students are currently enrolled in this module.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Export Actions -->
+        <div class="flex justify-end mb-8 space-x-4">
+            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Export to CSV
+            </button>
+            <button type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Report
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle details rows
+            document.querySelectorAll('.details-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const studentId = this.getAttribute('data-student-id');
+                    const detailsRow = document.getElementById(`details-${studentId}`);
+
+                    // Hide all other open detail rows first
+                    document.querySelectorAll('.details-row:not(.hidden)').forEach(row => {
+                        if (row.id !== `details-${studentId}`) {
+                            row.classList.add('hidden');
+                        }
+                    });
+
+                    // Toggle the selected row
+                    detailsRow.classList.toggle('hidden');
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('search');
+            searchInput.addEventListener('input', filterStudents);
+
+            // Filter functionality
+            const progressFilter = document.getElementById('progress-filter');
+            progressFilter.addEventListener('change', filterStudents);
+
+            // Sort functionality
+            const sortBy = document.getElementById('sort-by');
+            sortBy.addEventListener('change', sortStudents);
+
+            function filterStudents() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const filterValue = progressFilter.value;
+                const studentRows = document.querySelectorAll('.student-row');
+
+                studentRows.forEach(row => {
+                    const studentName = row.getAttribute('data-name').toLowerCase();
+                    const studentStatus = row.getAttribute('data-status');
+
+                    const matchesSearch = studentName.includes(searchTerm);
+                    const matchesFilter = filterValue === 'all' || studentStatus === filterValue;
+
+                    // Show/hide the row and its details
+                    if (matchesSearch && matchesFilter) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
+                        // Also hide its details row if open
+                        const studentId = row.querySelector('.details-btn').getAttribute('data-student-id');
+                        const detailsRow = document.getElementById(`details-${studentId}`);
+                        detailsRow.classList.add('hidden');
+                    }
+                });
+            }
+
+            function sortStudents() {
+                const sortValue = sortBy.value;
+                const studentRows = Array.from(document.querySelectorAll('.student-row'));
+                const tableBody = document.querySelector('#students-table tbody');
+
+                // Sort rows
+                studentRows.sort((a, b) => {
+                    if (sortValue === 'name') {
+                        return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                    } else if (sortValue === 'progress') {
+                        return parseInt(b.getAttribute('data-progress')) - parseInt(a.getAttribute('data-progress'));
+                    } else if (sortValue === 'score') {
+                        return parseFloat(b.getAttribute('data-score')) - parseFloat(a.getAttribute('data-score'));
+                    }
+                    return 0;
+                });
+
+                // Remove all rows
+                studentRows.forEach(row => {
+                    const studentId = row.querySelector('.details-btn').getAttribute('data-student-id');
+                    const detailsRow = document.getElementById(`details-${studentId}`);
+                    row.remove();
+                    detailsRow.remove();
+                });
+
+                // Add sorted rows back
+                studentRows.forEach(row => {
+                    const studentId = row.querySelector('.details-btn').getAttribute('data-student-id');
+                    const detailsRow = document.getElementById(`details-${studentId}`);
+                    tableBody.appendChild(row);
+                    tableBody.appendChild(detailsRow);
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,193 @@
+﻿@model List<WebApplication1.Models.ViewModels.QuizAttemptsViewModel>
+@{
+    ViewData["Title"] = "My Quiz Attempts";
+    var currentDateTime = ViewBag.CurrentDateTime;
+    var currentUser = ViewBag.CurrentUser;
+
+    var stats = (Dictionary<string, object>)ViewBag.Statistics;
+    int totalQuizzes = (int)stats["TotalQuizzes"];
+    int totalAttempts = (int)stats["TotalAttempts"];
+    int completedAttempts = (int)stats["CompletedAttempts"];
+    double averageScore = (double)stats["AverageScore"];
+    int bestScore = (int)stats["BestOverallScore"];
+}
+ 
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+        <!-- Page Header -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">My Quiz Attempts</h1>
+                <p class="mt-1 text-sm text-gray-500">Review all your quiz attempts and track your progress</p>
+            </div>
+            <div class="mt-4 sm:mt-0">
+                <button id="generate-pdf-btn" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Progress Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                            <svg class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">
+                                    Total Quizzes
+                                </dt>
+                                <dd class="text-lg font-medium text-gray-900">
+                                    @totalQuizzes
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other stats cards remain the same -->
+            <!-- ... -->
+        </div>
+
+        <!-- Quiz Groups remain the same -->
+        <!-- ... -->
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // PDF generation
+            document.getElementById('generate-pdf-btn').addEventListener('click', function() {
+                generatePDF();
+            });
+
+            async function generatePDF() {
+                // Show loading indicator
+                const button = document.getElementById('generate-pdf-btn');
+                const originalText = button.innerHTML;
+                button.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...`;
+
+                try {
+                    // Fetch report data from the server
+                    const response = await fetch('@Url.Action("DownloadProgressReport")');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch report data');
+                    }
+
+                    const reportData = await response.json();
+
+                    // Create PDF document
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+
+                    // Add title
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Quiz Progress Report', 105, 20, { align: 'center' });
+
+                    // Add user info
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`Student: ${reportData.userFullName} (${reportData.userName})`, 20, 35);
+                    doc.text(`Generated on: ${reportData.generatedDate}`, 20, 43);
+
+                    // Add overall statistics
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Overall Statistics', 20, 55);
+
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+
+                    const statsData = [
+                        ['Total Attempts', reportData.totalAttempts.toString()],
+                        ['Completed Attempts', reportData.completedAttempts.toString()],
+                        ['Average Score', reportData.averageScore.toFixed(1)]
+                    ];
+
+                    doc.autoTable({
+                        startY: 60,
+                        head: [['Metric', 'Value']],
+                        body: statsData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [75, 85, 175] }
+                    });
+
+                    let yPos = doc.lastAutoTable.finalY + 15;
+
+                    // Add module sections
+                    for (const moduleDetail of reportData.moduleDetails) {
+                        // Check if we need a new page
+                        if (yPos > 250) {
+                            doc.addPage();
+                            yPos = 20;
+                        }
+
+                        doc.setFontSize(14);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`${moduleDetail.moduleName} (${moduleDetail.moduleCode})`, 20, yPos);
+
+                        doc.setFontSize(10);
+                        doc.setFont('helvetica', 'normal');
+                        doc.text(`Course: ${moduleDetail.courseName}`, 20, yPos + 7);
+
+                        // Prepare quiz data
+                        const quizRows = moduleDetail.quizzes.map(quiz => [
+                            quiz.quizTitle,
+                            quiz.attemptCount.toString(),
+                            quiz.bestScore.toFixed(1),
+                            quiz.lastAttemptDate
+                        ]);
+
+                        // Add quiz table
+                        doc.autoTable({
+                            startY: yPos + 12,
+                            head: [['Quiz Title', 'Attempts', 'Best Score', 'Last Attempt']],
+                            body: quizRows,
+                            theme: 'grid',
+                            headStyles: { fillColor: [100, 100, 220] }
+                        });
+
+                        yPos = doc.lastAutoTable.finalY + 15;
+                    }
+
+                    // Add footer
+                    const pageCount = doc.internal.pages.length;
+                    for (let i = 1; i <= pageCount; i++) {
+                        doc.setPage(i);
+                        doc.setFontSize(8);
+                        doc.setTextColor(150);
+                        doc.text('This report contains confidential academic information. Do not distribute.', 105, 290, { align: 'center' });
+                        doc.text(`Page ${i} of ${pageCount}`, 195, 290, { align: 'right' });
+                    }
+
+                    // Save the PDF
+                    const filename = `quiz_progress_report_${reportData.generatedDate.replace(/[^0-9]/g, '')}.pdf`;
+                    doc.save(filename);
+
+                } catch (error) {
+                    console.error('Error generating PDF:', error);
+                    alert('There was an error generating the PDF report. Please try again later.');
+                } finally {
+                    // Restore button text
+                    button.innerHTML = originalText;
+                }
+            }
+        });
+    </script>
+}
