@@ -19,7 +19,9 @@
                     </div>
                     <div>
                         <dt class="text-sm font-medium text-gray-500">Application Fee</dt>
-                        <dd class="mt-1 text-sm text-gray-900">$@Model.ApplicationFee.ToString("F2")</dd>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            @Model.ApplicationFee.ToString("C", new System.Globalization.CultureInfo("en-ZA"))
+                        </dd>
                     </div>
                 </dl>
             </div>
@@ -28,26 +30,26 @@
                     <input type="hidden" name="applicationId" value="@Model.ApplicationId" />
 
                     <!-- Hosted Fields Container -->
-                    <div id="card-container" class="space-y-4">
+                    <div id="card-container" class="space-y-6">
                         <div>
-                            <label for="card-number" class="block text-sm font-medium text-gray-700">Card Number</label>
-                            <div id="card-number" class="hosted-field-input"></div>
+                            <label for="card-number" class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                            <div id="card-number" class="hosted-field-input border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500"></div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label for="expiration-date" class="block text-sm font-medium text-gray-700">Expiration Date</label>
-                                <div id="expiration-date" class="hosted-field-input"></div>
+                                <label for="expiration-date" class="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
+                                <div id="expiration-date" class="hosted-field-input border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500"></div>
                             </div>
                             <div>
-                                <label for="cvv" class="block text-sm font-medium text-gray-700">CVV</label>
-                                <div id="cvv" class="hosted-field-input"></div>
+                                <label for="cvv" class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                <div id="cvv" class="hosted-field-input border border-gray-300 rounded-md px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-green-500 focus-within:border-green-500"></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-4">
+                    <div class="mt-6">
                         <button id="submit-button" type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            Pay $@Model.ApplicationFee.ToString("F2")
+                            Pay @Model.ApplicationFee.ToString("C", new System.Globalization.CultureInfo("en-ZA"))
                         </button>
                     </div>
                 </form>
@@ -78,10 +80,21 @@
                     'input': {
                         'font-size': '14px',
                         'font-family': 'Arial, sans-serif',
-                        'color': '#333'
+                        'color': '#111827', // Tailwind gray-900
+                        'padding': '0.5rem',
+                        'border': 'none',
+                        'background-color': '#ffffff'
                     },
                     ':focus': {
-                        'color': '#000'
+                        'color': '#000000',
+                        'border-color': '#10B981',
+                        'box-shadow': '0 0 0 2px rgba(16, 185, 129, 0.5)'
+                    },
+                    '::placeholder': {
+                        'color': '#9CA3AF' // Tailwind gray-400
+                    },
+                    ':disabled': {
+                        'color': '#D1D5DB' // Tailwind gray-300
                     }
                 },
                 fields: {
@@ -114,7 +127,6 @@
                             return;
                         }
 
-                        // Add the nonce to the form and submit
                         var input = document.createElement('input');
                         input.type = 'hidden';
                         input.name = 'paymentNonce';
