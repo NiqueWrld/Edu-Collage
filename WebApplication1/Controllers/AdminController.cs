@@ -28,7 +28,35 @@ namespace WebApplication1.Controllers
         // View All Courses
         public async Task<IActionResult> AdminDashboard()
         {
-            return View();
+            var totalCourses = await _context.Courses.CountAsync();
+            var totalStudents = await _context.Users.CountAsync();
+            var totalApplications = await _context.Applications.CountAsync();
+            var lecturesThisWeek = await _context.ModuleLecturers
+                .Where(m => m.AssignedDate >= DateTime.UtcNow.AddDays(-7))
+                .CountAsync();
+
+            var viewModel = new AdminDashboardViewModel
+            {
+                TotalCourses = totalCourses,
+                TotalStudents = totalStudents,
+                TotalApplications = totalApplications,
+                LecturesThisWeek = lecturesThisWeek,
+                RecentApplications = await _context.Applications
+                    .OrderByDescending(a => a.ApplicationDate)
+                    .Take(5)
+                    .ToListAsync()
+            };
+
+            return View(viewModel);
+        }
+
+        public class AdminDashboardViewModel
+        {
+            public int TotalCourses { get; set; }
+            public int TotalStudents { get; set; }
+            public int TotalApplications { get; set; }
+            public int LecturesThisWeek { get; set; }
+            public List<Application> RecentApplications { get; set; }
         }
 
         public IActionResult CreateCourse()

@@ -1,4 +1,6 @@
-﻿@{
+﻿@model WebApplication1.Controllers.AdminController.AdminDashboardViewModel
+
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
@@ -23,12 +25,12 @@
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 truncate">Total Courses</p>
-                        <p class="mt-1 text-xl font-semibold text-gray-900">42</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">@Model.TotalCourses</p>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-green-600">+12%</span>
+                        <span class="text-sm font-medium text-gray-600">0%</span>
                         <span class="text-xs text-gray-500">vs last semester</span>
                     </div>
                 </div>
@@ -43,12 +45,12 @@
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 truncate">Total Students</p>
-                        <p class="mt-1 text-xl font-semibold text-gray-900">1,257</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">@Model.TotalStudents</p>
                     </div>
                 </div>
                 <div class="mt-4">
                     <div class="flex items-center justify-between">
-                        <span class="text-sm font-medium text-green-600">+18%</span>
+                        <span class="text-sm font-medium text-gray-600">0%</span>
                         <span class="text-xs text-gray-500">vs last semester</span>
                     </div>
                 </div>
@@ -63,7 +65,7 @@
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 truncate">Applications</p>
-                        <p class="mt-1 text-xl font-semibold text-gray-900">38</p>
+                        <p class="mt-1 text-xl font-semibold text-gray-900">@Model.TotalApplications</p>
                     </div>
                 </div>
                 <div class="mt-4">
