@@ -29,7 +29,15 @@ namespace WebApplication1.Controllers
         public async Task<IActionResult> AdminDashboard()
         {
             var totalCourses = await _context.Courses.CountAsync();
-            var totalStudents = await _context.Users.CountAsync();
+            var studentRole = await _context.Roles
+     .Where(r => r.Name == "Student")
+     .Select(r => r.Id)
+     .FirstOrDefaultAsync();
+
+            var totalStudents = await _context.UserRoles
+                .Where(ur => ur.RoleId == studentRole)
+                .CountAsync();
+
             var totalApplications = await _context.Applications.CountAsync();
             var lecturesThisWeek = await _context.ModuleLecturers
                 .Where(m => m.AssignedDate >= DateTime.UtcNow.AddDays(-7))
