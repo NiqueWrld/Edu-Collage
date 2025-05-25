@@ -37,6 +37,7 @@
                         <div class="mt-1">
                             <select asp-for="Type" id="questionType" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" onchange="toggleQuestionFields()">
                                 <option value="0">Multiple Choice</option>
+                                <option value="1">True or False</option>
                                 <option value="2">Short Answer</option>
                             </select>
                             <span asp-validation-for="Type" class="text-sm text-red-500"></span>
@@ -71,58 +72,20 @@
                             <h3 class="text-lg font-medium text-gray-900">Multiple Choice Options</h3>
                             <p class="text-sm text-gray-500">Enter 4 options and select the correct one</p>
                         </div>
-
-                        <!-- Option 1 -->
-                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
-                            <div class="flex items-center">
-                                <div class="flex items-center h-5">
-                                    <input id="correct-option-0" name="correctOption" type="radio" value="0" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300" required>
-                                </div>
-                                <div class="ml-3 w-full">
-                                    <label for="correct-option-0" class="block text-sm font-medium text-gray-700">Option 1 (select if correct)</label>
-                                    <input type="text" name="Options[0]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Option 2 -->
-                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
-                            <div class="flex items-center">
-                                <div class="flex items-center h-5">
-                                    <input id="correct-option-1" name="correctOption" type="radio" value="1" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
-                                </div>
-                                <div class="ml-3 w-full">
-                                    <label for="correct-option-1" class="block text-sm font-medium text-gray-700">Option 2 (select if correct)</label>
-                                    <input type="text" name="Options[1]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                        @for (int opt = 0; opt < 4; opt++)
+                        {
+                            <div class="mb-3 p-3 bg-gray-50 rounded-md">
+                                <div class="flex items-center">
+                                    <div class="flex items-center h-5">
+                                        <input id="correct-option-@opt" name="correctOption" type="radio" value="@opt" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300" @(opt == 0 ? "required" : "")>
+                                    </div>
+                                    <div class="ml-3 w-full">
+                                        <label for="correct-option-@opt" class="block text-sm font-medium text-gray-700">Option @(opt + 1) (select if correct)</label>
+                                        <input type="text" name="Options[@opt]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Option 3 -->
-                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
-                            <div class="flex items-center">
-                                <div class="flex items-center h-5">
-                                    <input id="correct-option-2" name="correctOption" type="radio" value="2" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
-                                </div>
-                                <div class="ml-3 w-full">
-                                    <label for="correct-option-2" class="block text-sm font-medium text-gray-700">Option 3 (select if correct)</label>
-                                    <input type="text" name="Options[2]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Option 4 -->
-                        <div class="mb-3 p-3 bg-gray-50 rounded-md">
-                            <div class="flex items-center">
-                                <div class="flex items-center h-5">
-                                    <input id="correct-option-3" name="correctOption" type="radio" value="3" class="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-300">
-                                </div>
-                                <div class="ml-3 w-full">
-                                    <label for="correct-option-3" class="block text-sm font-medium text-gray-700">Option 4 (select if correct)</label>
-                                    <input type="text" name="Options[3]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Enter option text" required>
-                                </div>
-                            </div>
-                        </div>
+                        }
                     </div>
 
                     <!-- Short Answer Info -->
@@ -139,6 +102,24 @@
                                     This question requires a brief text response from students. You will need to manually review and grade their answers.
                                 </p>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- True or False Section -->
+                    <div id="trueFalseSection" class="rounded-md bg-green-50 p-4" style="display: none;">
+                        <div class="mb-2">
+                            <h3 class="text-lg font-medium text-gray-900">True or False</h3>
+                            <p class="text-sm text-gray-500">Select the correct answer</p>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="trueFalseOption" id="trueOption" checked value="True" />
+                                <span>True</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="trueFalseOption" id="falseOption" value="False" />
+                                <span>False</span>
+                            </label>
                         </div>
                     </div>
 
@@ -169,7 +150,7 @@
                     </div>
                 </div>
 
-                <!-- Hidden field to store the correct answer for multiple choice -->
+                <!-- Hidden field to store the correct answer for multiple choice and true/false -->
                 <input type="hidden" id="correctAnswerField" asp-for="CorrectAnswer" value="" />
 
                 <div class="px-4 py-3 bg-gray-50 text-right sm:px-6 space-x-3">
@@ -188,18 +169,24 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Make toggleQuestionFields global
         function toggleQuestionFields() {
             const questionType = document.getElementById('questionType').value;
             const multipleChoiceSection = document.getElementById('multipleChoiceSection');
             const shortAnswerSection = document.getElementById('shortAnswerSection');
+            const trueFalseSection = document.getElementById('trueFalseSection');
 
             if (questionType === '0') {
                 multipleChoiceSection.style.display = 'block';
                 shortAnswerSection.style.display = 'none';
-            } else {
+                trueFalseSection.style.display = 'none';
+            } else if (questionType === '2') {
                 multipleChoiceSection.style.display = 'none';
                 shortAnswerSection.style.display = 'block';
+                trueFalseSection.style.display = 'none';
+            } else if (questionType === '1') {
+                multipleChoiceSection.style.display = 'none';
+                shortAnswerSection.style.display = 'none';
+                trueFalseSection.style.display = 'block';
             }
         }
 
@@ -218,21 +205,22 @@
                         alert('Please select the correct answer option by clicking the radio button next to it.');
                         return;
                     }
-
                     const optionIndex = parseInt(selectedRadio.value);
                     const optionText = document.querySelector(`input[name="Options[${optionIndex}]"]`).value;
-
-                    // Populate the correctAnswer hidden field with the selected option's text
                     correctAnswerField.value = optionText;
-
-                    // Debugging: Log the values to ensure correct behavior
-                    console.log("CorrectOption Index:", optionIndex);
-                    console.log("CorrectAnswer Text:", correctAnswerField.value);
+                } else if (questionType.value === '1') { // True or False
+                    const selectedTF = document.querySelector('input[name="trueFalseOption"]:checked');
+                    if (!selectedTF) {
+                        e.preventDefault();
+                        alert('Please select True or False as the correct answer.');
+                        return;
+                    }
+                    const optionIndex = parseInt(selectedTF.value);
+                    const optionText = document.querySelector(`input[trueFalseOption]"]`).value;
+                    correctAnswerField.value = selectedTF.value;
                 }
             });
 
-            // This is not strictly necessary since you have onchange in HTML, but
-            // in case you want to be robust, you can also do:
             questionType.addEventListener('change', toggleQuestionFields);
         });
     </script>

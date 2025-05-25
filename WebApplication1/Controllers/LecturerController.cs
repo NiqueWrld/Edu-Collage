@@ -601,7 +601,7 @@ namespace WebApplication1.Controllers
                     question.OptionsJson = System.Text.Json.JsonSerializer.Serialize(model.Options);
                 }
 
-            if (Request.Form.ContainsKey("correctOption"))
+            if (model.Type == QuestionType.MultipleChoice && Request.Form.ContainsKey("correctOption"))
             {
                 int correctOptionIndex = int.Parse(Request.Form["correctOption"]);
 
@@ -609,6 +609,17 @@ namespace WebApplication1.Controllers
                 {
                     model.CorrectAnswer = model.Options[correctOptionIndex];
                 }
+            }
+            else if (model.Type == QuestionType.TrueFalse && Request.Form.ContainsKey("trueFalseOption"))
+            {
+                model.CorrectAnswer = Request.Form["trueFalseOption"];
+            }
+
+
+                if (model.CorrectAnswer == null)
+            {
+                //Console.Beep();
+                return NotFound();
             }
 
 
@@ -737,7 +748,7 @@ namespace WebApplication1.Controllers
                 question.OptionsJson = null;
             }
 
-            if (Request.Form.ContainsKey("correctOption"))
+            if (model.Type == QuestionType.MultipleChoice && Request.Form.ContainsKey("correctOption"))
             {
                 int correctOptionIndex = int.Parse(Request.Form["correctOption"]);
 
@@ -745,6 +756,10 @@ namespace WebApplication1.Controllers
                 {
                     model.CorrectAnswer = model.Options[correctOptionIndex];
                 }
+            }
+            else if (model.Type == QuestionType.TrueFalse && Request.Form.ContainsKey("trueFalseOption"))
+            {
+                model.CorrectAnswer = Request.Form["trueFalseOption"];
             }
 
 
@@ -829,6 +844,15 @@ namespace WebApplication1.Controllers
                 return Forbid();
             }
 
+            bool hasAnswers = await _context.StudentAnswers
+    .AnyAsync(sa => sa.QuestionId == question.QuestionId);
+
+            if (hasAnswers)
+            {
+                TempData["ErrorMessage"] = "Question cannot be deleted because students have already submitted answers.";
+                return RedirectToAction(nameof(EditQuiz), new { id = question.QuizId });
+            }
+
             // Delete image if it exists
             if (!string.IsNullOrEmpty(question.ImageUrl) &&
                 question.ImageUrl.StartsWith("/uploads/"))
@@ -875,6 +899,16 @@ namespace WebApplication1.Controllers
             {
                 return Forbid();
             }
+
+            bool hasAnswers = await _context.StudentAnswers
+    .AnyAsync(sa => quiz.Questions.Select(q => q.QuestionId).Contains(sa.QuestionId));
+
+            if (hasAnswers)
+            {
+                TempData["ErrorMessage"] = "Quiz cannot be deleted because students have already submitted answers.";
+                return RedirectToAction(nameof(ModuleDetails), new { id = quiz.ModuleId });
+            }
+
 
             // Delete all associated questions and their images
             foreach (var question in quiz.Questions)

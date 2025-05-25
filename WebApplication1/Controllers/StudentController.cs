@@ -443,7 +443,7 @@ namespace WebApplication1.Controllers
                 if (answers.TryGetValue($"answer_{ans.QuestionId}", out var value))
                     ans.Answer = value;
 
-                if (ans.Question.Type == QuestionType.MultipleChoice && ans.Answer == ans.Question.CorrectAnswer)
+                if (ans.Question.Type == QuestionType.MultipleChoice || ans.Question.Type == QuestionType.TrueFalse && ans.Answer == ans.Question.CorrectAnswer)
                 {
                     ans.IsCorrect = true;
                     ans.PointsAwarded = ans.Question.Points;

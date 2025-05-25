@@ -19,6 +19,22 @@
             </p>
         </div>
 
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-4a1 1 0 102 0 1 1 0 00-2 0zm.293-8.707a1 1 0 011.414 0L11 6.586l.293-.293a1 1 0 111.414 1.414L12.414 8l.293.293a1 1 0 01-1.414 1.414L11 9.414l-.293.293a1 1 0 01-1.414-1.414L9.586 8 9.293 7.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">@TempData["ErrorMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
             <form asp-action="EditQuizQuestion" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="QuestionId" />
@@ -84,6 +100,27 @@
                                     </div>
                                 </div>
                             }
+                        </div>
+                    }
+
+                    <!-- True or False Section -->
+                    @if (Model.Type == QuestionType.TrueFalse)
+                    {
+                        <div id="trueFalseSection" class="rounded-md bg-green-50 p-4">
+                            <div class="mb-2">
+                                <h3 class="text-lg font-medium text-gray-900">True or False</h3>
+                                <p class="text-sm text-gray-500">Select the correct answer</p>
+                            </div>
+                            <div class="flex items-center gap-6">
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="trueFalseOption" id="trueOption" value="True" @(Model.CorrectAnswer == "True" ? "checked" : "") />
+                                    <span>True</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="radio" name="trueFalseOption" id="falseOption" value="False" @(Model.CorrectAnswer == "False" ? "checked" : "") />
+                                    <span>False</span>
+                                </label>
+                            </div>
                         </div>
                     }
 
@@ -155,17 +192,31 @@
         @if (Model.Type == QuestionType.MultipleChoice)
         {
             <text>
-                form.addEventListener('submit', function (e) {
-                    const selectedRadio = document.querySelector('input[name="correctOption"]:checked');
-                    if (!selectedRadio) {
-                        e.preventDefault();
-                        alert('Please select the correct answer option by clicking the radio button next to it.');
-                        return;
-                    }
-                    const optionIndex = parseInt(selectedRadio.value);
-                    const optionText = document.querySelector(`input[name="Options[${optionIndex}]"]`).value;
-                    correctAnswerField.value = optionText;
-                });
+                    form.addEventListener('submit', function (e) {
+                        const selectedRadio = document.querySelector('input[name="correctOption"]:checked');
+                        if (!selectedRadio) {
+                            e.preventDefault();
+                            alert('Please select the correct answer option by clicking the radio button next to it.');
+                            return;
+                        }
+                        const optionIndex = parseInt(selectedRadio.value);
+                        const optionText = document.querySelector(`input[name="Options[${optionIndex}]"]`).value;
+                        correctAnswerField.value = optionText;
+                    });
+            </text>
+        }
+        @if (Model.Type == QuestionType.TrueFalse)
+        {
+            <text>
+                    form.addEventListener('submit', function (e) {
+                        const selectedTF = document.querySelector('input[name="trueFalseOption"]:checked');
+                        if (!selectedTF) {
+                            e.preventDefault();
+                            alert('Please select True or False as the correct answer.');
+                            return;
+                        }
+                        correctAnswerField.value = selectedTF.value;
+                    });
             </text>
         }
         });
