@@ -2,7 +2,12 @@
 @{
     ViewData["Title"] = "My Modules";
     var currentDateTime = DateTime.Now;
-    var currentUser = User.Identity.Name; ;
+    var currentUser = User.Identity.Name;
+    // Group modules by Year and Semester
+    var groupedModules = Model
+        .GroupBy(m => new { m.Year, m.Semester })
+        .OrderBy(g => g.Key.Year)
+        .ThenBy(g => g.Key.Semester);
 }
 
 <div class="bg-gray-50 min-h-screen py-8">
@@ -31,62 +36,79 @@
         }
         else
         {
-            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                <ul class="divide-y divide-gray-200">
-                    @foreach (var module in Model)
-                    {
-                        <li>
-                            <a href="@Url.Action("ModuleDetails", new { id = module.ModuleId })" class="block hover:bg-gray-50">
-                                <div class="px-4 py-4 sm:px-6">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                                                <span class="text-indigo-600 font-semibold text-sm">@module.Course.CourseCode</span>
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-indigo-600">@module.ModuleName</div>
-                                                <div class="text-sm text-gray-500">@module.Course.CourseCode - @module.Course.CourseName</div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div class="inline-flex items-center text-sm text-gray-500">
-                                                @{
-                                                    var materialCount = 0;
-                                                    var quizCount =  0;
-                                                }
+            <div class="space-y-4">
+                @foreach (var group in groupedModules)
+                {
+                    var dropdownId = $"dropdown-{group.Key.Year}-{group.Key.Semester}";
+                    var semesterDisplay = group.Key.Semester == WebApplication1.Models.Module.SemesterNumber.Semester1 ? "Semester 1" : "Semester 2";
+                    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                        <button type="button" class="w-full flex justify-between items-center px-4 py-4 text-left focus:outline-none" onclick="toggleDropdown('@dropdownId')">
+                            <div>
+                                <span class="text-lg font-semibold text-indigo-700">Year @group.Key.Year - @semesterDisplay</span>
+                                <span class="ml-2 text-sm text-gray-400">(@group.Count() module@(group.Count() > 1 ? "s" : ""))</span>
+                            </div>
+                            <svg id="@($"{dropdownId}-icon")" class="h-5 w-5 text-gray-400 transition-transform duration-200 transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="@dropdownId" class="hidden">
+                            <ul class="divide-y divide-gray-200">
+                                @foreach (var module in group)
+                                {
+                                    <li>
+                                        <a href="@Url.Action("ModuleDetails", new { id = module.ModuleId })" class="block hover:bg-gray-50">
+                                            <div class="px-4 py-4 sm:px-6">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                                                            <span class="text-indigo-600 font-semibold text-sm">@module.Course.CourseCode</span>
+                                                        </div>
+                                                        <div class="ml-4">
+                                                            <div class="text-sm font-medium text-indigo-600">@module.ModuleName</div>
+                                                            <div class="text-sm text-gray-500">@module.Course.CourseCode - @module.Course.CourseName</div>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="inline-flex items-center text-sm text-gray-500">
+                                                            @{
+                                                                var materialCount = 0; // Replace with actual count if available
+                                                                var quizCount = 0; // Replace with actual count if available
+                                                            }
+                                                            @if (materialCount > 0)
+                                                            {
+                                                                <span class="mr-3 flex items-center">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                    </svg>
+                                                                    @materialCount materials
+                                                                </span>
+                                                            }
 
-                                                @if (materialCount > 0)
-                                                {
-                                                    <span class="mr-3 flex items-center">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            @if (quizCount > 0)
+                                                            {
+                                                                <span class="flex items-center">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                                    </svg>
+                                                                    @quizCount quizzes
+                                                                </span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div class="ml-2 flex-shrink-0">
+                                                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                                         </svg>
-                                                        @materialCount materials
-                                                    </span>
-                                                }
-
-                                                @if (quizCount > 0)
-                                                {
-                                                    <span class="flex items-center">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                                                        </svg>
-                                                        @quizCount quizzes
-                                                    </span>
-                                                }
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="ml-2 flex-shrink-0">
-                                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                    }
-                </ul>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>
@@ -94,9 +116,25 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                icon.classList.add('rotate-90');
+            } else {
+                dropdown.classList.add('hidden');
+                icon.classList.remove('rotate-90');
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function () {
             console.log("Current user: @currentUser");
             console.log("Current time: @currentDateTime");
         });
     </script>
+    <style>
+        .rotate-90 {
+            transform: rotate(90deg);
+        }
+    </style>
 }

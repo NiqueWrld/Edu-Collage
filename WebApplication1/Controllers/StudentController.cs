@@ -309,22 +309,25 @@ namespace WebApplication1.Controllers
 
             if (quiz == null) return NotFound();
 
-            var attempt = _context.StudentQuizAttempts
-                .FirstOrDefault(a => a.QuizId == quiz.QuizId && a.StudentId == userId);
+            var attempts = _context.StudentQuizAttempts
+                .Where(a => a.QuizId == quiz.QuizId && a.StudentId == userId)
+                .ToList();
 
-            if(attempt == null){
+            // 1. If there is an unsubmitted attempt, let the student resume it
+            var unsubmittedAttempt = attempts.FirstOrDefault(a => !a.IsSubmitted);
+            if (unsubmittedAttempt != null)
+            {
+                return RedirectToAction("TakeQuiz", new { attemptId = unsubmittedAttempt.AttemptId });
+            }
 
+            // 2. If unlimited attempts or not reached max, allow starting new attempt
+            if (quiz.MaxAttempts == 0 || attempts.Count < quiz.MaxAttempts)
+            {
                 return View(quiz);
             }
-            else if (attempt.IsSubmitted)
-            {
-                return RedirectToAction("QuizResults", new { attempt.AttemptId });
-            }
-            else
-            {
-                return RedirectToAction("QuizResults", new { attempt.AttemptId });
-            }
 
+            // 3. Otherwise, max attempts reached and all are submitted: show results
+            return RedirectToAction("QuizResults", new { quizId = quiz.QuizId });
         }
 
 

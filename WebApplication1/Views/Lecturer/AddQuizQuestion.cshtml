@@ -188,7 +188,22 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-                document.addEventListener('DOMContentLoaded', function () {
+        // Make toggleQuestionFields global
+        function toggleQuestionFields() {
+            const questionType = document.getElementById('questionType').value;
+            const multipleChoiceSection = document.getElementById('multipleChoiceSection');
+            const shortAnswerSection = document.getElementById('shortAnswerSection');
+
+            if (questionType === '0') {
+                multipleChoiceSection.style.display = 'block';
+                shortAnswerSection.style.display = 'none';
+            } else {
+                multipleChoiceSection.style.display = 'none';
+                shortAnswerSection.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             const questionType = document.getElementById('questionType');
             const correctAnswerField = document.getElementById('correctAnswerField');
@@ -216,19 +231,9 @@
                 }
             });
 
-            function toggleQuestionFields() {
-                const questionType = document.getElementById('questionType').value;
-                const multipleChoiceSection = document.getElementById('multipleChoiceSection');
-                const shortAnswerSection = document.getElementById('shortAnswerSection');
-
-                if (questionType === '0') {
-                    multipleChoiceSection.style.display = 'block';
-                    shortAnswerSection.style.display = 'none';
-                } else {
-                    multipleChoiceSection.style.display = 'none';
-                    shortAnswerSection.style.display = 'block';
-                }
-            }
+            // This is not strictly necessary since you have onchange in HTML, but
+            // in case you want to be robust, you can also do:
+            questionType.addEventListener('change', toggleQuestionFields);
         });
     </script>
 }

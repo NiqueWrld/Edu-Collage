@@ -612,11 +612,6 @@ namespace WebApplication1.Controllers
             }
 
 
-            if (model.CorrectAnswer == null)
-            {
-                Console.Beep();
-            }
-
                 // Handle correct answer
                 if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)
                 {
@@ -753,10 +748,6 @@ namespace WebApplication1.Controllers
             }
 
 
-            if (model.CorrectAnswer == null)
-            {
-                Console.Beep();
-            }
 
             // Handle correct answer
             if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)
