@@ -54,34 +54,35 @@
 
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <!-- Assign New Module -->
+            <!-- Assign New Module -->
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
                     <h2 class="text-lg font-medium text-gray-900">Assign Module</h2>
-                    <p class="mt-1 text-sm text-gray-500">Select a module to assign to this lecturer</p>
+                    <p class="mt-1 text-sm text-gray-500">Search and assign a module to this lecturer</p>
                 </div>
                 <div class="px-4 py-5 sm:p-6">
-                    <form asp-action="AssignModule" method="post">
-                        <input type="hidden" name="LecturerId" value="@Model.LecturerId" />
+                    <input type="text" id="moduleSearch" placeholder="Search modules..." class="mb-4 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
 
-                        <div class="mb-4">
-                            <label for="ModuleId" class="block text-sm font-medium text-gray-700">Select Module</label>
-                            <select id="ModuleId" name="ModuleId" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                                @foreach (var module in Model.AllModules)
-                                {
-                                    <option value="@module.Value">@module.Text</option>
-                                }
-                            </select>
-                        </div>
-
-                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
-                            </svg>
-                            Assign Module
-                        </button>
-                    </form>
+                    <div class="max-h-64 overflow-y-auto border rounded">
+                        <ul id="moduleList" class="divide-y divide-gray-200">
+                            @foreach (var module in Model.AllModules)
+                            {
+                                <li class="p-3 flex items-center justify-between module-item" data-search="@($"{module.Text} {module.Value}")">
+                                    <span class="text-sm text-gray-800">@module.Text</span>
+                                    <form asp-action="AssignModule" method="post" class="inline">
+                                        <input type="hidden" name="LecturerId" value="@Model.LecturerId" />
+                                        <input type="hidden" name="ModuleId" value="@module.Value" />
+                                        <button type="submit" class="ml-2 px-3 py-1.5 border border-transparent text-sm rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
+                                            Assign
+                                        </button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
+
 
             <!-- Currently Assigned Modules -->
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -127,3 +128,15 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('moduleSearch').addEventListener('input', function () {
+            var filter = this.value.toLowerCase();
+            document.querySelectorAll('.module-item').forEach(function (item) {
+                var text = item.getAttribute('data-search').toLowerCase();
+                item.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+}

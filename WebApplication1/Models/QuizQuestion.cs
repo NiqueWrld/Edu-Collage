@@ -8,7 +8,6 @@ namespace WebApplication1.Models
         MultipleChoice,
         TrueFalse,
         ShortAnswer,
-        Essay
     }
 
     public class QuizQuestion

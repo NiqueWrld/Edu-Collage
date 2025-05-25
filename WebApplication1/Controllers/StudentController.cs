@@ -1,19 +1,13 @@
 ﻿using CloudinaryDotNet;
-using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
-using System;
-using System.Threading.Tasks;
-using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Braintree;
-using Microsoft.Extensions.DependencyInjection;
 using WebApplication1.Models.ViewModels;
 
 namespace WebApplication1.Controllers
@@ -28,7 +22,7 @@ namespace WebApplication1.Controllers
         private readonly ILogger<StudentController> _logger;
         private readonly BraintreeGateway _braintreeGateway;
 
-        public StudentController(NexelContext context, UserManager<IdentityUser> userManager,  IConfiguration configuration, BraintreeGateway braintreeGateway , ILogger<StudentController> logger = null )
+        public StudentController(NexelContext context, UserManager<IdentityUser> userManager, IConfiguration configuration, BraintreeGateway braintreeGateway, ILogger<StudentController> logger = null)
         {
             _context = context;
             _userManager = userManager;
@@ -51,7 +45,7 @@ namespace WebApplication1.Controllers
             }
         }
 
-      
+
 
         public async Task<IActionResult> ProceedToPayment(int id)
         {
@@ -125,14 +119,14 @@ namespace WebApplication1.Controllers
                     Amount = application.ApplicationFee,
                     PaymentMethod = "Credit Card",
                     Status = "Completed",
-                    IdentityUserId = application.IdentityUserId 
+                    IdentityUserId = application.IdentityUserId
                 };
 
 
                 _context.Payments.Add(payment);
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
-              
+
                 application.PaymentId = payment.PaymentId;
 
                 // Save the updated application
@@ -158,7 +152,7 @@ namespace WebApplication1.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            
+
 
             var module = await _context.Modules
                 .Include(m => m.Course)
@@ -200,34 +194,43 @@ namespace WebApplication1.Controllers
                 return Challenge();
             }
 
-            var applications = await _context.Applications
-     .Where(e => e.IdentityUserId == userId
-                 && e.Status == Application.ApplicationStatus.Approved
-                 && e.PaymentId != null)
-     .Include(e => e.Course)
-         .ThenInclude(c => c.Modules)
-     .ToListAsync();
+            var application = await _context.Applications
+    .Where(e => e.IdentityUserId == userId
+                && e.Status == Application.ApplicationStatus.Approved
+                && e.PaymentId != null)
+    .Include(e => e.Course)
+        .ThenInclude(c => c.Modules)
+    .FirstOrDefaultAsync();
 
 
-
-            if (!applications.Any())
+            if (application == null)
             {
                 // The student hasn't completed enrollment yet
                 return View("NotEnrolled");
             }
 
             // Extract all modules
-            var modules = applications
-                .SelectMany(app => app.Course.Modules)
-                .ToList();
+            var modules = application?.Course?.Modules?.ToList() ?? new List<Module>();
+
+            ViewBag.EnrolledYear = application.ApprovedDate;
 
             return View(modules); // Now you're passing List<Module>
         }
 
 
         [HttpGet]
-        public IActionResult ApplyAdmission()
+        public async Task<IActionResult> ApplyAdmission()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var application = await _context.Applications
+                .FirstOrDefaultAsync(a => a.IdentityUserId == userId);
+
+            if (application != null)
+            {
+                return RedirectToAction(nameof(TrackApplications));
+            }
+
             ViewData["CourseId"] = new SelectList(_context.Courses, "Id", "CourseCode");
             ViewData["IdentityUserId"] = new SelectList(_context.Users, "Id", "Id");
             ViewData["PaymentId"] = new SelectList(_context.Payments, "PaymentId", "IdentityUserId");
@@ -281,7 +284,7 @@ namespace WebApplication1.Controllers
                 .Include(c => c.Modules)
                 .FirstOrDefault(c => c.Id == application.CourseId);
 
-            application.ApplicationFee = 4500; 
+            application.ApplicationFee = 4500;
             application.IdentityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             // Save application to database
@@ -330,6 +333,43 @@ namespace WebApplication1.Controllers
             return RedirectToAction("QuizResults", new { quizId = quiz.QuizId });
         }
 
+
+        [Authorize]
+        public async Task<IActionResult> Calendar()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get approved, paid applications for this student
+            var applications = await _context.Applications
+                .Where(a => a.IdentityUserId == userId && a.Status == Application.ApplicationStatus.Approved && a.PaymentId != null)
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Modules)
+                .ToListAsync();
+
+            // Get all modules the student is enrolled in
+            var modules = applications.SelectMany(a => a.Course.Modules).ToList();
+
+            // Get quizzes for these modules
+            var moduleIds = modules.Select(m => m.ModuleId).ToList();
+            var quizzes = await _context.Quizzes
+                .Where(q => moduleIds.Contains(q.ModuleId))
+                .ToListAsync();
+
+            // Pass both to the view
+            var viewModel = new StudentCalendarViewModel
+            {
+                Modules = modules,
+                Quizzes = quizzes
+            };
+
+            return View(viewModel);
+        }
+
+        public class StudentCalendarViewModel
+        {
+            public List<Module> Modules { get; set; }
+            public List<Quiz> Quizzes { get; set; }
+        }
 
         // GET: Student/TakeQuiz/5
         public async Task<IActionResult> TakeQuiz(int attemptId)
@@ -392,6 +432,7 @@ namespace WebApplication1.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var attempt = await _context.StudentQuizAttempts
                 .Include(a => a.Answers)
+                .ThenInclude(a => a.Question)
                 .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.StudentId == userId);
 
             if (attempt == null) return NotFound();
@@ -401,7 +442,14 @@ namespace WebApplication1.Controllers
             {
                 if (answers.TryGetValue($"answer_{ans.QuestionId}", out var value))
                     ans.Answer = value;
+
+                if (ans.Question.Type == QuestionType.MultipleChoice && ans.Answer == ans.Question.CorrectAnswer)
+                {
+                    ans.IsCorrect = true;
+                    ans.PointsAwarded = ans.Question.Points;
+                }
             }
+
             attempt.IsSubmitted = true;
             attempt.SubmissionTime = DateTime.UtcNow;
             await _context.SaveChangesAsync();
@@ -541,27 +589,27 @@ namespace WebApplication1.Controllers
             // Calculate statistics
             var totalQuestions = attempt.Quiz.Questions.Count;
             var answeredQuestions = attempt.Answers.Count(a => !string.IsNullOrWhiteSpace(a.Answer));
-            var correctAnswers = attempt.Answers.Count(a => a.Answer == a.Question.CorrectAnswer);
-            var incorrectAnswers = attempt.Answers.Count(a => a.Answer != a.Question.CorrectAnswer);
+            var correctAnswers = attempt.Answers.Count(a => a.IsCorrect == true);
+            var incorrectAnswers = attempt.Answers.Count(a => a.IsCorrect == false);
             var pendingReview = attempt.Answers.Count(a => a.IsCorrect == null && !string.IsNullOrWhiteSpace(a.Answer));
             var totalPoints = attempt.Quiz.Questions.Sum(q => q.Points);
             var earnedPoints = attempt.Answers
-    .Where(a => a.Answer == a.Question.CorrectAnswer)
-    .Sum(a => a.Question.Points);
+                .Where(a => a.IsCorrect == true)
+                .Sum(a => a.PointsAwarded);
 
             var scorePercentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
 
             ViewBag.Statistics = new Dictionary<string, object>
-    {
-        { "TotalQuestions", totalQuestions },
-        { "AnsweredQuestions", answeredQuestions },
-        { "CorrectAnswers", correctAnswers },
-        { "IncorrectAnswers", incorrectAnswers },
-        { "PendingReview", pendingReview },
-        { "TotalPoints", totalPoints },
-        { "EarnedPoints", earnedPoints },
-        { "ScorePercentage", scorePercentage }
-    };
+            {
+                { "TotalQuestions", totalQuestions },
+                { "AnsweredQuestions", answeredQuestions },
+                { "CorrectAnswers", correctAnswers },
+                { "IncorrectAnswers", incorrectAnswers },
+                { "PendingReview", pendingReview },
+                { "TotalPoints", totalPoints },
+                { "EarnedPoints", earnedPoints },
+                { "ScorePercentage", scorePercentage }
+            };
 
             // Get previous attempts for comparison
             var previousAttempts = await _context.StudentQuizAttempts
@@ -612,6 +660,6 @@ namespace WebApplication1.Controllers
             }
         }
 
-       
+
     }
 }

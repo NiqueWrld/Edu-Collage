@@ -97,17 +97,17 @@
 
                         <li>This quiz contains <strong>@Model.Questions.Count questions</strong> worth a total of <strong>@Model.Questions.Sum(q => q.Points) points</strong>.</li>
 
-                        @*
-                        @if (!Model.AllowMultipleAttempts)
+                 
+                        @if (Model.MaxAttempts > 0)
                         {
-                            <li><strong>You can only attempt this quiz once.</strong> Make sure you're ready before starting.</li>
+                            <li><strong>You can attempt this quiz @Model.MaxAttempts times. </strong> Make sure you're ready before starting.</li>
                         }
                         else
                         {
                             <li>You can attempt this quiz multiple times. Your highest score will be recorded.</li>
                         }
 
-                        *@
+                        
 
                         <li>You can navigate between questions freely during the quiz.</li>
                         <li>Your answers are automatically saved as you progress.</li>

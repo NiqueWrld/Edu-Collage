@@ -1,0 +1,87 @@
+﻿@model WebApplication1.Models.ViewModels.GradeQuizAttemptViewModel
+@{
+    ViewData["Title"] = "Grade Quiz Attempt";
+    var canEdit = true;
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Grade Quiz Attempt</h1>
+        <div class="mb-4 text-sm text-gray-600">
+            <span class="font-medium">Quiz:</span> @Model.QuizTitle <br />
+            <span class="font-medium">Student:</span> @Model.StudentName <br />
+            <span class="font-medium">Started:</span> @Model.StartTime.ToString("yyyy-MM-dd HH:mm") <br />
+            <span class="font-medium">Submitted:</span> @Model.SubmissionTime?.ToString("yyyy-MM-dd HH:mm")
+        </div>
+
+        <form asp-action="SubmitQuizGrades" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="AttemptId" value="@Model.AttemptId" />
+
+            <div class="space-y-8">
+                @for (int i = 0; i < Model.Answers.Count; i++)
+                {
+                    var answer = Model.Answers[i];
+                    var question = answer.Question;
+                    <div class="bg-white shadow rounded-lg p-6 border">
+                        <input type="hidden" name="GradedAnswers[@i].AnswerId" value="@answer.AnswerId" />
+                        <h2 class="text-lg font-semibold text-gray-800 mb-2">Question @(i + 1): @question.QuestionText</h2>
+                        <div class="mb-2 text-sm text-gray-600">
+                            <span class="font-medium">Points:</span> @question.Points
+                        </div>
+                        @if (!string.IsNullOrEmpty(question.ImageUrl))
+                        {
+                            <div class="mb-2">
+                                <img src="@question.ImageUrl" alt="Question image" class="max-h-48 rounded border" />
+                            </div>
+                        }
+                        <div class="mb-2">
+                            <span class="font-medium">Student's Answer:</span>
+                            <div class="mt-1 p-2 bg-gray-50 border rounded text-gray-900">
+                                @(!string.IsNullOrWhiteSpace(answer.Answer) ? answer.Answer : "<i>No answer provided</i>")
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(question.CorrectAnswer))
+                        {
+                            <div class="mb-2 text-sm text-gray-500">
+                                <span class="font-medium">Correct Answer:</span> @question.CorrectAnswer
+                            </div>
+                        }
+                        <div class="flex flex-wrap items-center gap-4 mt-3">
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="GradedAnswers[@i].IsCorrect" value="true" @(answer.IsCorrect == true ? "checked" : "") required />
+                                <span class="text-green-700">Correct</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="radio" name="GradedAnswers[@i].IsCorrect" value="false" @(answer.IsCorrect == false ? "checked" : "") required />
+                                <span class="text-red-700">Incorrect</span>
+                            </label>
+                            <label>
+                                <span class="font-medium">Points Awarded:</span>
+                                <input type="number" name="GradedAnswers[@i].PointsAwarded" min="0" max="@question.Points" value="@(answer.PointsAwarded ?? 0)" class="ml-2 w-20 border rounded px-2 py-1" required />
+                            </label>
+                        </div>
+                        <div class="mt-3">
+                            <label class="block text-sm font-medium text-gray-700">Feedback (optional):</label>
+                            <textarea name="GradedAnswers[@i].Feedback" rows="2" class="mt-1 block w-full border rounded px-2 py-1">@answer.FeedbackFromLecturer</textarea>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="mt-8 bg-white shadow rounded-lg p-6 border">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Overall Feedback to Student (optional):</label>
+                <textarea name="FeedbackFromLecturer" rows="3" class="block w-full border rounded px-2 py-1">@Model.FeedbackFromLecturer</textarea>
+            </div>
+
+            <div class="mt-6 flex gap-4">
+                <button type="submit" class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
+                    Submit Grades
+                </button>
+                <a href="@Url.Action("QuizAttempts", new { id = Model.QuizId })" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

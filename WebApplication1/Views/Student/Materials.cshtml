@@ -3,12 +3,29 @@
     ViewData["Title"] = "My Modules";
     var currentDateTime = DateTime.Now;
     var currentUser = User.Identity.Name;
-    // Group modules by Year and Semester
-    var groupedModules = Model
+
+    var enrolledYear = ViewBag.EnrolledYear != null
+        ? ((DateTime)ViewBag.EnrolledYear).Year
+        : DateTime.Now.Year;
+
+    var currentStudyYear = (currentDateTime.Year - enrolledYear) + 1;
+
+    // Determine current semester
+    var currentSemester = currentDateTime.Month <= 6
+        ? WebApplication1.Models.Module.SemesterNumber.Semester1
+        : WebApplication1.Models.Module.SemesterNumber.Semester2;
+
+    // Only modules for the current study year AND current semester
+    var filteredModules = Model.Where(m =>
+        m.Year == currentStudyYear.ToString() &&
+        m.Semester == currentSemester);
+
+    var groupedModules = filteredModules
         .GroupBy(m => new { m.Year, m.Semester })
         .OrderBy(g => g.Key.Year)
         .ThenBy(g => g.Key.Semester);
 }
+
 
 <div class="bg-gray-50 min-h-screen py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,11 +64,11 @@
                                 <span class="text-lg font-semibold text-indigo-700">Year @group.Key.Year - @semesterDisplay</span>
                                 <span class="ml-2 text-sm text-gray-400">(@group.Count() module@(group.Count() > 1 ? "s" : ""))</span>
                             </div>
-                            <svg id="@($"{dropdownId}-icon")" class="h-5 w-5 text-gray-400 transition-transform duration-200 transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <svg id="@($"{dropdownId}-icon")" class="h-5 w-5 text-gray-400 rotate-90 transition-transform duration-200 transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                             </svg>
                         </button>
-                        <div id="@dropdownId" class="hidden">
+                        <div id="@dropdownId">
                             <ul class="divide-y divide-gray-200">
                                 @foreach (var module in group)
                                 {

@@ -1,0 +1,113 @@
+﻿@model WebApplication1.Controllers.StudentController.StudentCalendarViewModel
+
+@{
+    ViewData["Title"] = "My Calendar";
+    var now = DateTime.Now;
+
+    // Determine current semester
+    var currentSemester = now.Month <= 6
+        ? WebApplication1.Models.Module.SemesterNumber.Semester1
+        : WebApplication1.Models.Module.SemesterNumber.Semester2;
+
+    // Filter modules for current semester
+    var currentSemesterModules = Model.Modules
+        .Where(m => m.Semester == currentSemester && m.ClassDay.HasValue && m.ClassTime.HasValue)
+        .ToList();
+
+    var daysOfWeek = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-bold text-gray-900 mb-6">My Calendar</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Timetable View -->
+            <div class="md:col-span-2">
+                <h2 class="text-lg font-semibold text-indigo-700 mb-3">Weekly Timetable (Semester @(currentSemester == WebApplication1.Models.Module.SemesterNumber.Semester1 ? "1" : "2"))</h2>
+
+                <div class="overflow-x-auto bg-white rounded shadow">
+                    <table class="min-w-full table-fixed border border-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="w-1/6 border border-gray-200 px-2 py-3 text-left text-sm font-semibold text-gray-700">Time</th>
+                                @foreach (var day in daysOfWeek)
+                                {
+                                    <th class="w-1/6 border border-gray-200 px-2 py-3 text-center text-sm font-semibold text-gray-700">@day</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int hour = 8; hour <= 18; hour++) // Display from 8 AM to 6 PM
+                            {
+                                <tr class="border-t border-gray-100">
+                                    <td class="border border-gray-200 px-2 py-2 text-sm text-gray-600">@($"{hour:00}:00")</td>
+                                    @foreach (var day in daysOfWeek)
+                                    {
+                                        var module = currentSemesterModules
+                                        .FirstOrDefault(m =>
+                                        m.ClassDay.ToString() == day &&
+                                        m.ClassTime.HasValue &&
+                                        m.ClassTime.Value.Hours == hour);
+
+                                        if (module != null)
+                                        {
+                                            <td class="border border-gray-200 bg-indigo-50 px-2 py-2 text-sm text-indigo-700 font-semibold">
+                                                <div>@module.ModuleName</div>
+                                                <div class="text-xs text-indigo-500">@module.Course?.CourseCode</div>
+                                            </td>
+                                        }
+                                        else
+                                        {
+                                            <td class="border border-gray-200 px-2 py-2 text-sm text-gray-400 text-center">–</td>
+                                        }
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Upcoming Quizzes -->
+            <div>
+                <h2 class="text-lg font-semibold text-red-700 mb-3">Upcoming Quizzes</h2>
+                
+                <ul class="divide-y divide-gray-200 bg-white rounded shadow">
+                    @foreach (var quiz in Model.Quizzes
+                    .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
+                    .OrderBy(q => q.StartDate))
+                    {
+                        var quizModule = Model.Modules.FirstOrDefault(m => m.ModuleId == quiz.ModuleId);
+                        if (quizModule == null || quizModule.Semester != currentSemester) { continue; }
+
+                        <li class="p-4">
+                            <div class="font-medium text-gray-900">@quiz.Title</div>
+                            <div class="text-sm text-gray-500">
+                                @quiz.StartDate?.ToString("dddd, MMM d yyyy, HH:mm")
+                                @if (quiz.EndDate.HasValue)
+                                {
+                                    <span> - @quiz.EndDate.Value.ToString("HH:mm")</span>
+                                }
+                            </div>
+                            <div class="text-xs text-gray-400 mb-2">@quizModule.ModuleName</div>
+
+                            <a href="@Url.Action("StartQuiz", new { quizId = quiz.QuizId })"
+                               class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded">
+                                Take Quiz
+                            </a>
+                        </li>
+                    }
+
+                    @if (!Model.Quizzes
+                    .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
+                    .Any(q => Model.Modules.FirstOrDefault(m => m.ModuleId == q.ModuleId)?.Semester == currentSemester))
+                    {
+                        <li class="p-4 text-gray-500">No upcoming quizzes this semester.</li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

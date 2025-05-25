@@ -906,10 +906,14 @@ namespace WebApplication1.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var quiz = await _context.Quizzes
-                .Include(q => q.Module)
-                .Include(q => q.Attempts)
-                .ThenInclude(a => a.Student)
-                .FirstOrDefaultAsync(q => q.QuizId == id);
+        .Include(q => q.Module)
+        .Include(q => q.Questions)
+        .Include(q => q.Attempts)
+            .ThenInclude(a => a.Answers)
+        .Include(q => q.Attempts)
+            .ThenInclude(a => a.Student)
+        .FirstOrDefaultAsync(q => q.QuizId == id);
+
 
             if (quiz == null)
             {
@@ -981,8 +985,7 @@ namespace WebApplication1.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitQuizGrades(GradeQuizSubmissionViewModel model)
         {
-            if (ModelState.IsValid)
-            {
+            
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 var attempt = await _context.StudentQuizAttempts
@@ -1031,7 +1034,7 @@ namespace WebApplication1.Controllers
 
                 TempData["SuccessMessage"] = "Quiz grades submitted successfully.";
                 return RedirectToAction(nameof(QuizAttempts), new { id = attempt.QuizId });
-            }
+            
 
             return RedirectToAction(nameof(GradeQuizAttempt), new { id = model.AttemptId });
         }
@@ -1104,6 +1107,8 @@ namespace WebApplication1.Controllers
                     .Where(a => a.StudentId == student.Id &&
                            quizzes.Select(q => q.QuizId).Contains(a.QuizId))
                     .Include(a => a.Quiz)
+                    .ThenInclude(a => a.Questions)
+                    .Include(a => a.Answers)
                     .ToListAsync();
 
                 // Calculate statistics

@@ -65,9 +65,6 @@
                                     Attempt #
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Student
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Started On
                                 </th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -87,23 +84,14 @@
                                 var isCompleted = attempt.SubmissionTime.HasValue;
                                 var needsMarking = !attempt.Answers.All(a => a.IsCorrect.HasValue);
                                 var quizEnded = attempt.SubmissionTime.HasValue && attempt.SubmissionTime.Value < currentDate;
-
-                                var totalPoints = attempt.Quiz.Questions.Sum(q => q.Points);
-                                var earnedPoints = attempt.Answers
-                                .Where(a => a.IsCorrect == true)
-                                .Sum(a => a.PointsAwarded);
-
-                                var scorePercentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
+                                var scorePercentage = isCompleted && attempt.Quiz.Questions.Sum(q => q.Points) > 0
+                                ? (int)Math.Round((double)attempt.Score * 100 / attempt.Quiz.Questions.Sum(q => q.Points))
+                                : 0;
 
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">
                                             #@attempt.AttemptId
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900">
-                                            @attempt.Student.Email
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -137,7 +125,7 @@
                                             <div class="text-sm text-gray-900 font-medium">
                                                 @scorePercentage%
                                                 <span class="ml-1 text-xs text-gray-500">
-                                                    (@earnedPoints/@totalPoints)
+                                                    (@attempt.Score/@attempt.Quiz.Questions.Sum(q => q.Points) points)
                                                 </span>
                                             </div>
                                         }
@@ -146,27 +134,20 @@
                                             <span class="text-sm text-gray-500">--</span>
                                         }
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         @if (isCompleted && !needsMarking)
                                         {
-                                            <a href="@Url.Action("QuizResults", new { attemptId = attempt.AttemptId })"
-                                               class="inline-block px-3 py-1 rounded-md bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition">
+                                            <a href="@Url.Action("QuizResults", new { attemptId = attempt.AttemptId })" class="text-indigo-600 hover:text-indigo-900 mr-4">
                                                 View Results
-                                            </a>
-                                            <a href="@Url.Action("GradeQuizAttempt", new { id = attempt.AttemptId })"
-                                               class="inline-block px-3 py-1 rounded-md bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
-                                                Re-Grade Quiz
                                             </a>
                                         }
                                         else
                                         {
-                                            <a href="@Url.Action("GradeQuizAttempt", new { id = attempt.AttemptId })"
-                                               class="inline-block px-3 py-1 rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition">
-                                                Grade Quiz
+                                            <a href="@Url.Action("MarkQuiz", new { attemptId = attempt.AttemptId })" class="text-indigo-600 hover:text-indigo-900 mr-4">
+                                                Mark Quiz
                                             </a>
                                         }
                                     </td>
-
                                 </tr>
                             }
                         </tbody>
