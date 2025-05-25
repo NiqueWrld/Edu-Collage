@@ -14,6 +14,9 @@ namespace WebApplication1.Models
         public string ModuleCode { get; set; }
 
         [Required]
+        public decimal ModulePrice { get; set; }
+
+        [Required]
         public string Description { get; set; }
 
         [Required]

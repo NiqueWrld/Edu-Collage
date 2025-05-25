@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(NexelContext))]
-    [Migration("20250515060453_initial")]
-    partial class initial
+    [Migration("20250525081415_initial2")]
+    partial class initial2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -445,6 +445,12 @@ namespace WebApplication1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ModuleId"));
 
+                    b.Property<int?>("ClassDay")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan?>("ClassTime")
+                        .HasColumnType("time");
+
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
@@ -459,6 +465,9 @@ namespace WebApplication1.Migrations
                     b.Property<string>("ModuleName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ModulePrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Semester")
                         .HasColumnType("int");
@@ -598,6 +607,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
 
                     b.Property<int>("ModuleId")
                         .HasColumnType("int");

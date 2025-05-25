@@ -237,51 +237,52 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApplyAdmission(Application application, IFormFile IdentificationDocumentPath, IFormFile AcademicRecordsPath, IFormFile MotivationLetterPath)
+        public async Task<IActionResult> ApplyAdmission(
+    Application application,
+    IFormFile IdentificationDocumentPath,
+    IFormFile AcademicRecordsPath,
+    IFormFile MotivationLetterPath)
         {
-            var cloudinary = new Cloudinary(new Account(
-                "dtj6g1nt2",
-                "871839689527671",
-                "FR9B7olkGgn6fxfEjmHBbA03qxE"
-            ));
+            // Set up the local folder path
+            var uploadsRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "applications");
+            Directory.CreateDirectory(uploadsRoot); // Creates if not exists
 
-            async Task<string> UploadToCloudinary(IFormFile file)
+            // Helper to save file and return relative path
+            async Task<string> SaveFileAsync(IFormFile file)
             {
-                using var stream = file.OpenReadStream();
+                if (file == null || file.Length == 0)
+                    return null;
 
-                var uploadParams = new RawUploadParams
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                var filePath = Path.Combine(uploadsRoot, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    File = new FileDescription(file.FileName, stream),
-                    PublicId = file.FileName,
-                    Folder = "applications/",
-                    Type = "upload"  // Important to ensure it's public
-                };
+                    await file.CopyToAsync(stream);
+                }
 
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-                return uploadResult.SecureUrl?.ToString();
+                // Return the relative path for storage in DB
+                return $"/applications/{uniqueFileName}";
             }
 
-
             if (IdentificationDocumentPath != null)
-                application.IdentificationDocumentPath = await UploadToCloudinary(IdentificationDocumentPath);
+                application.IdentificationDocumentPath = await SaveFileAsync(IdentificationDocumentPath);
 
             if (AcademicRecordsPath != null)
-                application.AcademicRecordsPath = await UploadToCloudinary(AcademicRecordsPath);
+                application.AcademicRecordsPath = await SaveFileAsync(AcademicRecordsPath);
 
             if (MotivationLetterPath != null)
-                application.MotivationLetterPath = await UploadToCloudinary(MotivationLetterPath);
+                application.MotivationLetterPath = await SaveFileAsync(MotivationLetterPath);
 
             application.ApplicationDate = DateTime.Now;
             application.Status = Application.ApplicationStatus.Pending;
 
-            var course =  _context.Courses
+            var course = _context.Courses
                 .Include(c => c.Modules)
                 .FirstOrDefault(c => c.Id == application.CourseId);
 
-            application.ApplicationFee = course.Modules.Count() * 4500;
-
+            application.ApplicationFee = 4500; 
             application.IdentityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
 
             // Save application to database
             _context.Add(application);
@@ -289,6 +290,7 @@ namespace WebApplication1.Controllers
 
             return RedirectToAction(nameof(TrackApplications));
         }
+
 
         public IActionResult Dashboard()
         {

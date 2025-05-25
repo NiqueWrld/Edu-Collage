@@ -30,7 +30,9 @@ namespace WebApplication1.Models
 
         public DateTime? EndDate { get; set; }
 
-        public int TimeLimit { get; set; } // In minutes
+        public int TimeLimit { get; set; }
+
+        public int MaxAttempts { get; set; }
 
         public bool IsPublished { get; set; } = false;
 

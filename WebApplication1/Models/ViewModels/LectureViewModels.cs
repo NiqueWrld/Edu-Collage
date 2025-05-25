@@ -86,6 +86,8 @@ namespace WebApplication1.Models.ViewModels
         [Range(1, 180)]
         public int TimeLimit { get; set; } = 60;
 
+        public int MaxAttempts { get; set; }
+
         public bool IsPublished { get; set; } = false;
     }
 
@@ -107,6 +109,8 @@ namespace WebApplication1.Models.ViewModels
 
         [Range(1, 180)]
         public int TimeLimit { get; set; } = 60;
+
+        public int MaxAttempts { get; set; }
 
         public bool IsPublished { get; set; } = false;
 
@@ -151,11 +155,11 @@ namespace WebApplication1.Models.ViewModels
 
         public string CorrectAnswer { get; set; }
 
-        public string ImageUrl { get; set; }
-
         public IFormFile ImageFile { get; set; }
 
-        public bool RemoveImage { get; set; } = false;
+        public string ExistingImageUrl { get; set; }
+
+        public bool RemoveImage { get; set; }
     }
 
     public class QuizAttemptsViewModel

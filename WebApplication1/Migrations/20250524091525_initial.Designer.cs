@@ -12,8 +12,8 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(NexelContext))]
-    [Migration("20250516092821_initial2")]
-    partial class initial2
+    [Migration("20250524091525_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -465,6 +465,9 @@ namespace WebApplication1.Migrations
                     b.Property<string>("ModuleName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ModulePrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Semester")
                         .HasColumnType("int");

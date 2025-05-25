@@ -430,6 +430,7 @@ namespace WebApplication1.Controllers
                     StartDate = model.StartDate,
                     EndDate = model.EndDate,
                     TimeLimit = model.TimeLimit,
+                    MaxAttempts = model.MaxAttempts,
                     IsPublished = model.IsPublished
                 };
 
@@ -477,6 +478,7 @@ namespace WebApplication1.Controllers
                 StartDate = quiz.StartDate,
                 EndDate = quiz.EndDate,
                 TimeLimit = quiz.TimeLimit,
+                MaxAttempts = quiz.MaxAttempts,
                 IsPublished = quiz.IsPublished,
                 Questions = quiz.Questions.ToList()
             };
@@ -513,6 +515,7 @@ namespace WebApplication1.Controllers
                 quiz.StartDate = model.StartDate;
                 quiz.EndDate = model.EndDate;
                 quiz.TimeLimit = model.TimeLimit;
+                quiz.MaxAttempts = model.MaxAttempts;
                 quiz.IsPublished = model.IsPublished;
 
                 _context.Update(quiz);
@@ -602,7 +605,6 @@ namespace WebApplication1.Controllers
             {
                 int correctOptionIndex = int.Parse(Request.Form["correctOption"]);
 
-                // Use the index to retrieve the correct option's text
                 if (model.Options != null && correctOptionIndex >= 0 && correctOptionIndex < model.Options.Count)
                 {
                     model.CorrectAnswer = model.Options[correctOptionIndex];
@@ -648,15 +650,16 @@ namespace WebApplication1.Controllers
             return View(model);
         }
 
-        // GET: Edit Quiz Question
-        public async Task<IActionResult> EditQuizQuestion(int id)
+
+        // GET: Edit Question in Quiz
+        public async Task<IActionResult> EditQuizQuestion(int questionId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var question = await _context.QuizQuestions
                 .Include(q => q.Quiz)
-                .ThenInclude(q => q.Module)
-                .FirstOrDefaultAsync(q => q.QuestionId == id);
+                .ThenInclude(qz => qz.Module)
+                .FirstOrDefaultAsync(q => q.QuestionId == questionId);
 
             if (question == null)
             {
@@ -672,6 +675,16 @@ namespace WebApplication1.Controllers
                 return Forbid();
             }
 
+            List<string> options = new List<string>();
+            if (!string.IsNullOrEmpty(question.OptionsJson))
+            {
+                try
+                {
+                    options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(question.OptionsJson);
+                }
+                catch { }
+            }
+
             var viewModel = new EditQuizQuestionViewModel
             {
                 QuestionId = question.QuestionId,
@@ -680,127 +693,124 @@ namespace WebApplication1.Controllers
                 QuestionText = question.QuestionText,
                 Type = question.Type,
                 Points = question.Points,
+                Options = options,
                 CorrectAnswer = question.CorrectAnswer,
-                ImageUrl = question.ImageUrl
+                ExistingImageUrl = question.ImageUrl
             };
 
-            // Deserialize options if they exist
-            if (question.Type == QuestionType.MultipleChoice && !string.IsNullOrEmpty(question.OptionsJson))
-            {
-                viewModel.Options = System.Text.Json.JsonSerializer.Deserialize<List<string>>(question.OptionsJson);
-            }
-
-            return View(question);
+            return View(viewModel);
         }
 
-        // POST: Edit Quiz Question
+        // POST: Edit Question in Quiz
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditQuizQuestion(EditQuizQuestionViewModel model)
         {
-            if (ModelState.IsValid)
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var question = await _context.QuizQuestions
+                .Include(q => q.Quiz)
+                .ThenInclude(qz => qz.Module)
+                .FirstOrDefaultAsync(q => q.QuestionId == model.QuestionId);
+
+            if (question == null)
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                var question = await _context.QuizQuestions
-                    .Include(q => q.Quiz)
-                    .ThenInclude(q => q.Module)
-                    .FirstOrDefaultAsync(q => q.QuestionId == model.QuestionId);
-
-                if (question == null)
-                {
-                    return NotFound();
-                }
-
-                // Check if lecturer is assigned to this module
-                var moduleAssignment = await _context.ModuleLecturers
-                    .FirstOrDefaultAsync(ml => ml.ModuleId == question.Quiz.ModuleId && ml.LecturerId == userId);
-
-                if (moduleAssignment == null)
-                {
-                    return Forbid();
-                }
-
-                question.QuestionText = model.QuestionText;
-                question.Type = model.Type;
-                question.Points = model.Points;
-
-                // Handle options for multiple choice
-                if (model.Type == QuestionType.MultipleChoice && model.Options != null && model.Options.Count > 0)
-                {
-                    question.OptionsJson = System.Text.Json.JsonSerializer.Serialize(model.Options);
-                }
-                else
-                {
-                    question.OptionsJson = null;
-                }
-
-                // Handle correct answer
-                if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)
-                {
-                    question.CorrectAnswer = model.CorrectAnswer;
-                }
-                else
-                {
-                    question.CorrectAnswer = null;
-                }
-
-                // Handle image upload if provided
-                if (model.ImageFile != null)
-                {
-                    // Delete old image if it exists
-                    if (!string.IsNullOrEmpty(question.ImageUrl) &&
-                        question.ImageUrl.StartsWith("/uploads/"))
-                    {
-                        var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath,
-                            question.ImageUrl.TrimStart('/'));
-
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                        }
-                    }
-
-                    // Upload new image
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "quizimages");
-                    Directory.CreateDirectory(uploadsFolder);
-
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.ImageFile.FileName;
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await model.ImageFile.CopyToAsync(fileStream);
-                    }
-
-                    question.ImageUrl = "/uploads/quizimages/" + uniqueFileName;
-                }
-                else if (model.RemoveImage && !string.IsNullOrEmpty(question.ImageUrl))
-                {
-                    // Delete image if remove flag is set
-                    if (question.ImageUrl.StartsWith("/uploads/"))
-                    {
-                        var filePath = Path.Combine(_webHostEnvironment.WebRootPath,
-                            question.ImageUrl.TrimStart('/'));
-
-                        if (System.IO.File.Exists(filePath))
-                        {
-                            System.IO.File.Delete(filePath);
-                        }
-                    }
-
-                    question.ImageUrl = null;
-                }
-
-                _context.Update(question);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = "Question updated successfully.";
-                return RedirectToAction(nameof(EditQuiz), new { id = question.QuizId });
+                return NotFound();
             }
 
-            return View(model);
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == question.Quiz.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+            {
+                return Forbid();
+            }
+
+            // Update properties
+            question.QuestionText = model.QuestionText;
+            question.Type = model.Type;
+            question.Points = model.Points;
+
+            // Handle options for multiple choice
+            if (model.Type == QuestionType.MultipleChoice && model.Options != null && model.Options.Count > 0)
+            {
+                question.OptionsJson = System.Text.Json.JsonSerializer.Serialize(model.Options);
+            }
+            else
+            {
+                question.OptionsJson = null;
+            }
+
+            if (Request.Form.ContainsKey("correctOption"))
+            {
+                int correctOptionIndex = int.Parse(Request.Form["correctOption"]);
+
+                if (model.Options != null && correctOptionIndex >= 0 && correctOptionIndex < model.Options.Count)
+                {
+                    model.CorrectAnswer = model.Options[correctOptionIndex];
+                }
+            }
+
+
+            if (model.CorrectAnswer == null)
+            {
+                Console.Beep();
+            }
+
+            // Handle correct answer
+            if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)
+            {
+                question.CorrectAnswer = model.CorrectAnswer;
+            }
+            else
+            {
+                question.CorrectAnswer = null;
+            }
+
+            // Handle image upload
+            if (model.ImageFile != null)
+            {
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "quizimages");
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid().ToString() + "_" + model.ImageFile.FileName;
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.ImageFile.CopyToAsync(fileStream);
+                }
+
+                // Optional: delete old image if needed
+                if (!string.IsNullOrEmpty(question.ImageUrl))
+                {
+                    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, question.ImageUrl.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
+                question.ImageUrl = "/uploads/quizimages/" + uniqueFileName;
+            }
+            else if (model.RemoveImage && !string.IsNullOrEmpty(question.ImageUrl))
+            {
+                // Handle image removal
+                var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, question.ImageUrl.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString()));
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+                question.ImageUrl = null;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Question updated successfully.";
+            return RedirectToAction(nameof(EditQuiz), new { id = question.QuizId });
         }
+
 
         // POST: Delete Quiz Question
         [HttpPost]

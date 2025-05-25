@@ -221,8 +221,11 @@ namespace WebApplication1.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ModuleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModuleCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ModulePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Year = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ClassDay = table.Column<int>(type: "int", nullable: true),
+                    ClassTime = table.Column<TimeSpan>(type: "time", nullable: true),
                     Semester = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false)
                 },

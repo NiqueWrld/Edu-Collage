@@ -463,6 +463,9 @@ namespace WebApplication1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("ModulePrice")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("Semester")
                         .HasColumnType("int");
 
@@ -601,6 +604,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
 
                     b.Property<int>("ModuleId")
                         .HasColumnType("int");
