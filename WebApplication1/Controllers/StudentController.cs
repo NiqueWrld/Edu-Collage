@@ -635,7 +635,6 @@ namespace WebApplication1.Controllers
                 return RedirectToAction("ModuleDetails");
             }
 
-            // If not submitted yet, redirect to take quiz
             if (!attempt.IsSubmitted)
             {
                 return RedirectToAction("TakeQuiz", new { attemptId = attempt.AttemptId });

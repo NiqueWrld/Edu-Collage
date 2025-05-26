@@ -265,170 +265,170 @@
         <!-- Question Review -->
         @if (!hasUnmarkedShortAnswer)
         {
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-lg leading-6 font-medium text-gray-900">Question Review</h2>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                    Detailed review of your answers
-                </p>
-            </div>
-            <div class="px-4 py-5 sm:px-6">
-                <div class="space-y-6">
-                    @{
-                        int questionIndex = 1;
-                    }
-                    @foreach (var question in Model.Quiz.Questions)
-                    {
-                        var answer = Model.Answers.FirstOrDefault(a => a.QuestionId == question.QuestionId);
-                        var isCorrect = answer?.IsCorrect;
-                        var pointsAwarded = answer?.PointsAwarded ?? 0;
-                        var borderClass = isCorrect == true ? "border-green-300" :
-                        isCorrect == false ? "border-red-300" :
-                        !string.IsNullOrWhiteSpace(answer?.Answer) ? "border-yellow-300" : "border-gray-200";
-                        var bgClass = isCorrect == true ? "bg-green-50" :
-                        isCorrect == false ? "bg-red-50" :
-                        !string.IsNullOrWhiteSpace(answer?.Answer) ? "bg-yellow-50" : "bg-white";
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+                <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Question Review</h2>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        Detailed review of your answers
+                    </p>
+                </div>
+                <div class="px-4 py-5 sm:px-6">
+                    <div class="space-y-6">
+                        @{
+                            int questionIndex = 1;
+                        }
+                        @foreach (var question in Model.Quiz.Questions)
+                        {
+                            var answer = Model.Answers.FirstOrDefault(a => a.QuestionId == question.QuestionId);
+                            var isCorrect = answer?.IsCorrect;
+                            var pointsAwarded = answer?.PointsAwarded ?? 0;
+                            var borderClass = isCorrect == true ? "border-green-300" :
+                            isCorrect == false ? "border-red-300" :
+                            !string.IsNullOrWhiteSpace(answer?.Answer) ? "border-yellow-300" : "border-gray-200";
+                            var bgClass = isCorrect == true ? "bg-green-50" :
+                            isCorrect == false ? "bg-red-50" :
+                            !string.IsNullOrWhiteSpace(answer?.Answer) ? "bg-yellow-50" : "bg-white";
 
-                        <div class="border @borderClass rounded-lg overflow-hidden">
-                            <div class="@bgClass px-4 py-4 border-b @borderClass">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <h3 class="text-base font-medium text-gray-900">Question @(questionIndex++)</h3>
-                                        <p class="mt-1 text-sm text-gray-600">@question.Points point@(question.Points != 1 ? "s" : "")</p>
-                                    </div>
-                                    <div>
-                                        @if (isCorrect == true)
-                                        {
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                                </svg>
-                                                @pointsAwarded / @question.Points points
-                                            </span>
-                                        }
-                                        else if (isCorrect == false)
-                                        {
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                                </svg>
-                                                @pointsAwarded / @question.Points points
-                                            </span>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="px-4 py-4">
-                                <div class="text-sm text-gray-900 whitespace-pre-line mb-4">@question.QuestionText</div>
-
-                                @if (!string.IsNullOrEmpty(question.ImageUrl))
-                                {
-                                    <div class="mt-2 mb-4">
-                                        <img src="@question.ImageUrl" alt="Question image" class="max-h-64 object-contain rounded border border-gray-200" />
-                                    </div>
-                                }
-
-                                <!-- Your Answer -->
-                                <div class="mt-4">
-                                    <h4 class="text-sm font-medium text-gray-700">Your Answer:</h4>
-                                    @if (!string.IsNullOrWhiteSpace(answer?.Answer))
-                                    {
-                                        <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                                            <p class="text-sm text-gray-900 whitespace-pre-line">@answer.Answer</p>
+                            <div class="border @borderClass rounded-lg overflow-hidden">
+                                <div class="@bgClass px-4 py-4 border-b @borderClass">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <h3 class="text-base font-medium text-gray-900">Question @(questionIndex++)</h3>
+                                            <p class="mt-1 text-sm text-gray-600">@question.Points point@(question.Points != 1 ? "s" : "")</p>
                                         </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                                            <p class="text-sm italic text-gray-500">No answer provided</p>
-                                        </div>
-                                    }
-                                </div>
-
-                                <!-- Correct Answer (for wrong answers) -->
-                                @if (isCorrect == false && !string.IsNullOrEmpty(question.CorrectAnswer))
-                                {
-                                    <div class="mt-4">
-                                        <h4 class="text-sm font-medium text-gray-700">Correct Answer:</h4>
-                                        <div class="mt-2 p-3 bg-green-50 rounded-md border border-green-200">
-                                            <p class="text-sm text-green-900">@question.CorrectAnswer</p>
-                                        </div>
-                                    </div>
-                                }
-
-                                <!-- Options for Multiple Choice Questions -->
-                                @if ((question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.TrueFalse) &&
-                               (!string.IsNullOrEmpty(question.OptionsJson) || question.Type == QuestionType.TrueFalse))
-                                {
-                                    <div class="mt-4">
-                                        <h4 class="text-sm font-medium text-gray-700">All Options:</h4>
-                                        <div class="mt-2 space-y-2">
-                                            @{
-                                                var options = !string.IsNullOrEmpty(question.OptionsJson)
-                                                ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(question.OptionsJson)
-                                                : new List<string>();
-                                            }
-
-                                            @foreach (var option in options)
+                                        <div>
+                                            @if (isCorrect == true)
                                             {
-                                                bool isSelected = answer?.Answer == option;
-                                                bool isCorrectOption = option == question.CorrectAnswer;
-                                                string optionBgClass = "";
-                                                string iconHtml = "";
-
-                                                if (isSelected && isCorrectOption)
-                                                {
-                                                    optionBgClass = "bg-green-50 border-green-300";
-                                                    iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
-                                                }
-                                                else if (isSelected && !isCorrectOption)
-                                                {
-                                                    optionBgClass = "bg-red-50 border-red-300";
-                                                    iconHtml = "<svg class='h-5 w-5 text-red-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd' /></svg>";
-                                                }
-                                                else if (!isSelected && isCorrectOption)
-                                                {
-                                                    optionBgClass = "bg-green-50 border-green-300";
-                                                    iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
-                                                }
-                                                else
-                                                {
-                                                    optionBgClass = "bg-white border-gray-300";
-                                                    iconHtml = "<div class='h-5 w-5 mr-2'></div>";
-                                                }
-
-                                                <div class="flex items-center p-3 border rounded-md @optionBgClass">
-                                                    @Html.Raw(iconHtml)
-                                                    <span class="text-sm">@option</span>
-                                                </div>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    @pointsAwarded / @question.Points points
+                                                </span>
+                                            }
+                                            else if (isCorrect == false)
+                                            {
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <svg class="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    @pointsAwarded / @question.Points points
+                                                </span>
                                             }
                                         </div>
                                     </div>
-                                }
+                                </div>
+                                <div class="px-4 py-4">
+                                    <div class="text-sm text-gray-900 whitespace-pre-line mb-4">@question.QuestionText</div>
 
-                                <!-- Instructor Feedback if any -->
-                                @if (!string.IsNullOrEmpty(answer?.FeedbackFromLecturer))
-                                {
-                                    <div class="mt-4">
-                                        <h4 class="text-sm font-medium text-gray-700">Instructor Feedback:</h4>
-                                        <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
-                                            <p class="text-sm text-gray-900 whitespace-pre-line">@answer.FeedbackFromLecturer</p>
+                                    @if (!string.IsNullOrEmpty(question.ImageUrl))
+                                    {
+                                        <div class="mt-2 mb-4">
+                                            <img src="@question.ImageUrl" alt="Question image" class="max-h-64 object-contain rounded border border-gray-200" />
                                         </div>
+                                    }
+
+                                    <!-- Your Answer -->
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-medium text-gray-700">Your Answer:</h4>
+                                        @if (!string.IsNullOrWhiteSpace(answer?.Answer))
+                                        {
+                                            <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                <p class="text-sm text-gray-900 whitespace-pre-line">@answer.Answer</p>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                                                <p class="text-sm italic text-gray-500">No answer provided</p>
+                                            </div>
+                                        }
                                     </div>
-                                }
+
+                                    <!-- Correct Answer (for wrong answers) -->
+                                    @if (isCorrect == false && !string.IsNullOrEmpty(question.CorrectAnswer))
+                                    {
+                                        <div class="mt-4">
+                                            <h4 class="text-sm font-medium text-gray-700">Correct Answer:</h4>
+                                            <div class="mt-2 p-3 bg-green-50 rounded-md border border-green-200">
+                                                <p class="text-sm text-green-900">@question.CorrectAnswer</p>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Options for Multiple Choice Questions -->
+                                    @if ((question.Type == QuestionType.MultipleChoice || question.Type == QuestionType.TrueFalse) &&
+                                   (!string.IsNullOrEmpty(question.OptionsJson) || question.Type == QuestionType.TrueFalse))
+                                    {
+                                        <div class="mt-4">
+                                            <h4 class="text-sm font-medium text-gray-700">All Options:</h4>
+                                            <div class="mt-2 space-y-2">
+                                                @{
+                                                    var options = !string.IsNullOrEmpty(question.OptionsJson)
+                                                    ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(question.OptionsJson)
+                                                    : new List<string>();
+                                                }
+
+                                                @foreach (var option in options)
+                                                {
+                                                    bool isSelected = answer?.Answer == option;
+                                                    bool isCorrectOption = option == question.CorrectAnswer;
+                                                    string optionBgClass = "";
+                                                    string iconHtml = "";
+
+                                                    if (isSelected && isCorrectOption)
+                                                    {
+                                                        optionBgClass = "bg-green-50 border-green-300";
+                                                        iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
+                                                    }
+                                                    else if (isSelected && !isCorrectOption)
+                                                    {
+                                                        optionBgClass = "bg-red-50 border-red-300";
+                                                        iconHtml = "<svg class='h-5 w-5 text-red-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clip-rule='evenodd' /></svg>";
+                                                    }
+                                                    else if (!isSelected && isCorrectOption)
+                                                    {
+                                                        optionBgClass = "bg-green-50 border-green-300";
+                                                        iconHtml = "<svg class='h-5 w-5 text-green-500 mr-2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='currentColor'><path fill-rule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clip-rule='evenodd' /></svg>";
+                                                    }
+                                                    else
+                                                    {
+                                                        optionBgClass = "bg-white border-gray-300";
+                                                        iconHtml = "<div class='h-5 w-5 mr-2'></div>";
+                                                    }
+
+                                                    <div class="flex items-center p-3 border rounded-md @optionBgClass">
+                                                        @Html.Raw(iconHtml)
+                                                        <span class="text-sm">@option</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <!-- Instructor Feedback if any -->
+                                    @if (!string.IsNullOrEmpty(answer?.FeedbackFromLecturer))
+                                    {
+                                        <div class="mt-4">
+                                            <h4 class="text-sm font-medium text-gray-700">Instructor Feedback:</h4>
+                                            <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
+                                                <p class="text-sm text-gray-900 whitespace-pre-line">@answer.FeedbackFromLecturer</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
         }
         <!-- Action Buttons -->
         <div class="flex flex-wrap gap-4 mt-6">
             <a href="@Url.Action("ModuleDetails", new { id = Model.Quiz.ModuleId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                 Return to Module
             </a>
-            
+
             @if (Model.Quiz.MaxAttempts == 0)
             {
                 <a href="@Url.Action("StartQuiz", new { quizId = Model.QuizId })" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
@@ -439,6 +439,6 @@
                 </a>
             }
         </div>
-        
-        </div>
+
     </div>
+</div>

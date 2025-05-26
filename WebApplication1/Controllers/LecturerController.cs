@@ -1087,6 +1087,78 @@ namespace WebApplication1.Controllers
 
         #region Progress Tracking
 
+        public async Task<IActionResult> QuizResults(int attemptId)
+        {
+            // Get current user ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get attempt with all related data
+            var attempt = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Module)
+                .Include(a => a.Quiz.Questions)
+                .Include(a => a.Answers)
+                    .ThenInclude(a => a.Question)
+                .FirstOrDefaultAsync(a => a.AttemptId == attemptId);
+
+            if (attempt == null)
+            {
+                TempData["ErrorMessage"] = "Quiz attempt not found.";
+                return RedirectToAction("ModuleDetails");
+            }
+
+            if (!attempt.IsSubmitted)
+            {
+                return RedirectToAction("TakeQuiz", new { attemptId = attempt.AttemptId });
+            }
+
+            // Calculate statistics
+            var totalQuestions = attempt.Quiz.Questions.Count;
+            var answeredQuestions = attempt.Answers.Count(a => !string.IsNullOrWhiteSpace(a.Answer));
+            var correctAnswers = attempt.Answers.Count(a => a.IsCorrect == true);
+            var incorrectAnswers = attempt.Answers.Count(a => a.IsCorrect == false);
+            var pendingReview = attempt.Answers.Count(a => a.IsCorrect == null && !string.IsNullOrWhiteSpace(a.Answer));
+            var totalPoints = attempt.Quiz.Questions.Sum(q => q.Points);
+            var earnedPoints = attempt.Answers
+                .Where(a => a.IsCorrect == true)
+                .Sum(a => a.PointsAwarded);
+
+            var scorePercentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
+
+            ViewBag.Statistics = new Dictionary<string, object>
+            {
+                { "TotalQuestions", totalQuestions },
+                { "AnsweredQuestions", answeredQuestions },
+                { "CorrectAnswers", correctAnswers },
+                { "IncorrectAnswers", incorrectAnswers },
+                { "PendingReview", pendingReview },
+                { "TotalPoints", totalPoints },
+                { "EarnedPoints", earnedPoints },
+                { "ScorePercentage", scorePercentage }
+            };
+
+            // Get previous attempts for comparison
+            var previousAttempts = await _context.StudentQuizAttempts
+                .Where(a => a.QuizId == attempt.QuizId && a.StudentId == userId && a.IsSubmitted && a.AttemptId != attemptId)
+                .OrderByDescending(a => a.SubmissionTime)
+                .Select(a => new
+                {
+                    a.AttemptId,
+                    a.StartTime,
+                    a.SubmissionTime,
+                    a.Score
+                })
+                .ToListAsync();
+
+            ViewBag.PreviousAttempts = previousAttempts;
+
+            // Set ViewBag values for display
+            ViewBag.CurrentDateTime = "2025-05-15 12:52:14";
+            ViewBag.CurrentUser = "NiqueWrld";
+
+            return View(attempt);
+        }
+
         // GET: Student Progress
         public async Task<IActionResult> StudentProgress(int moduleId)
         {
