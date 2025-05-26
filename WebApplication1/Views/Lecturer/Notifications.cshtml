@@ -1,0 +1,167 @@
+@model IEnumerable<WebApplication1.Models.Notification>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "My Notifications";
+
+    // Get South African time zone info
+    var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+
+    // Convert UTC time to South African time
+    var currentDateTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mb-6">
+            <a href="@Url.Action("Dashboard")" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">My Notifications</h1>
+
+            <form asp-action="MarkAllAsRead" method="post" class="inline-block">
+                <button type="submit" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Mark All as Read
+                </button>
+            </form>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">No notifications</h3>
+                    <p class="mt-1 text-sm text-gray-500">You don't have any notifications at the moment.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                <ul class="divide-y divide-gray-200">
+                    @foreach (var notification in Model)
+                    {
+                        var isRead = notification.IsRead;
+                        var notificationDate = notification.CreatedAt.ToLocalTime();
+                        var timeAgo = GetTimeAgo(notification.CreatedAt);
+
+                        <li class="@(!isRead ? "bg-blue-50" : "")">
+                            <div class="px-4 py-4 sm:px-6 flex items-center">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center">
+                                        @switch (notification.Type)
+                                        {
+                                            case NotificationType.Assignment:
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 h-5 w-5 text-green-600 mt-1 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                                </svg>
+                                                break;
+                                            case NotificationType.Quiz:
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 h-5 w-5 text-indigo-600 mt-1 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                                </svg>
+                                                break;
+                                            default:
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 h-5 w-5 text-blue-600 mt-1 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                break;
+                                        }
+                                        <div>
+                                            <p class="text-sm font-medium text-indigo-600 truncate">@notification.Title</p>
+                                            <p class="mt-1 text-sm text-gray-500">@notification.Message</p>
+                                            <div class="mt-1 text-xs text-gray-500">
+                                                @timeAgo
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="ml-4 flex-shrink-0 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                                    @if (!string.IsNullOrEmpty(notification.Link))
+                                    {
+                                        <a href="@notification.Link" class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                            </svg>
+                                            Open
+                                        </a>
+                                    }
+                                    @if (!isRead)
+                                    {
+                                        <form asp-action="MarkAsRead" asp-route-id="@notification.NotificationId" method="post">
+                                            <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Mark as Read
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    public string GetTimeAgo(DateTime dateTime)
+    {
+        var span = DateTime.Now - dateTime;
+
+        if (span.TotalDays > 365)
+        {
+            int years = (int)(span.TotalDays / 365);
+            return $"{years} {(years == 1 ? "year" : "years")} ago";
+        }
+        if (span.TotalDays > 30)
+        {
+            int months = (int)(span.TotalDays / 30);
+            return $"{months} {(months == 1 ? "month" : "months")} ago";
+        }
+        if (span.TotalDays > 1)
+        {
+            return $"{(int)span.TotalDays} {((int)span.TotalDays == 1 ? "day" : "days")} ago";
+        }
+        if (span.TotalHours > 1)
+        {
+            return $"{(int)span.TotalHours} {((int)span.TotalHours == 1 ? "hour" : "hours")} ago";
+        }
+        if (span.TotalMinutes > 1)
+        {
+            return $"{(int)span.TotalMinutes} {((int)span.TotalMinutes == 1 ? "minute" : "minutes")} ago";
+        }
+        return "just now";
+    }
+}

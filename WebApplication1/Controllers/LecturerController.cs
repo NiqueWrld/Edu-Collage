@@ -243,6 +243,14 @@ namespace WebApplication1.Controllers
 
             await _context.SaveChangesAsync();
 
+            await _notificationService.CreateNotificationAsync(
+    submission.StudentId,
+    "Assignment Graded",
+    $"Your assignment '{submission.Assignment.Title}' has been graded.",
+    $"/Student/ViewSubmission/{submission.Id}",
+    NotificationType.Assignment
+);
+
             TempData["SuccessMessage"] = "Assignment graded successfully.";
             return RedirectToAction(nameof(ViewSubmissions), new { assignmentId = submission.AssignmentId });
         }
@@ -311,12 +319,15 @@ namespace WebApplication1.Controllers
                 .Select(a => a.IdentityUserId)
                 .ToListAsync();
 
+            var module = await _context.Modules
+                .FirstOrDefaultAsync(m => m.ModuleId == viewModel.Assignment.ModuleId);
+
             // Create notification for all students
             await _notificationService.CreateBulkNotificationsAsync(
                 enrolledStudents,
                 "New Assignment Posted",
-                $"A new assignment '{viewModel.Assignment.Title}' has been posted for {viewModel.Assignment.Module.ModuleName}.",
-                $"/Student/SubmitAssignment/{viewModel.Assignment.AssignmentId}",
+                $"A new assignment '{viewModel.Assignment.Title}' has been posted for {module.ModuleName}.",
+                $"/Student/SubmitAssignment/?assignmentId={viewModel.Assignment.AssignmentId}",
                 NotificationType.Assignment
             );
 
@@ -508,7 +519,25 @@ namespace WebApplication1.Controllers
                 _context.StudyMaterials.Add(studyMaterial);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Study material added successfully.";
+            var enrolledStudents = await _context.Applications
+    .Where(a => a.Status == Application.ApplicationStatus.Approved && a.PaymentId != null)
+    .Where(a => a.Course.Modules.Any(m => m.ModuleId == model.ModuleId))
+    .Select(a => a.IdentityUserId)
+    .ToListAsync();
+
+            var module = await _context.Modules
+                .FirstOrDefaultAsync(m => m.ModuleId == model.ModuleId);
+
+
+            await _notificationService.CreateBulkNotificationsAsync(
+    enrolledStudents,
+    "New Study Material Added",
+    $"New study material '{studyMaterial.Title}' has been added for {module.ModuleName}.",
+    $"/Student/ModuleDetails/{model.ModuleId}",
+    NotificationType.General
+);
+
+            TempData["SuccessMessage"] = "Study material added successfully.";
                 return RedirectToAction(nameof(ModuleDetails), new { id = model.ModuleId });
             
 
@@ -744,7 +773,25 @@ namespace WebApplication1.Controllers
                 _context.Quizzes.Add(quiz);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Quiz created successfully.";
+            var enrolledStudents = await _context.Applications
+    .Where(a => a.Status == Application.ApplicationStatus.Approved && a.PaymentId != null)
+    .Where(a => a.Course.Modules.Any(m => m.ModuleId == model.ModuleId))
+    .Select(a => a.IdentityUserId)
+    .ToListAsync();
+
+            var module = await _context.Modules
+                .FirstOrDefaultAsync(m => m.ModuleId == model.ModuleId);
+
+            // Create notification for all students
+            await _notificationService.CreateBulkNotificationsAsync(
+                enrolledStudents,
+                "New Quiz Available",
+                $"A new quiz '{quiz.Title}' has been posted for {module.ModuleName}.",
+                $"/Student/StartQuiz/{quiz.QuizId}",
+                NotificationType.Quiz
+            );
+
+            TempData["SuccessMessage"] = "Quiz created successfully.";
                 return RedirectToAction(nameof(EditQuiz), new { id = quiz.QuizId });
             
         }
@@ -1365,7 +1412,15 @@ namespace WebApplication1.Controllers
                 _context.Update(attempt);
                 await _context.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Quiz grades submitted successfully.";
+            await _notificationService.CreateNotificationAsync(
+    attempt.StudentId,
+    "Quiz Graded",
+    $"Your quiz attempt for '{attempt.Quiz.Title}' has been graded.",
+    $"/Student/QuizResults/{attempt.AttemptId}",
+    NotificationType.Quiz
+);
+
+            TempData["SuccessMessage"] = "Quiz grades submitted successfully.";
                 return RedirectToAction(nameof(QuizAttempts), new { id = attempt.QuizId });
             
 
