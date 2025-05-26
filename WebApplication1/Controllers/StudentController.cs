@@ -1,13 +1,14 @@
-﻿using CloudinaryDotNet;
+﻿using Braintree;
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Models;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Braintree;
 using WebApplication1.Models.ViewModels;
 
 namespace WebApplication1.Controllers
@@ -175,14 +176,120 @@ namespace WebApplication1.Controllers
                 .OrderByDescending(q => q.CreatedDate)
                 .ToListAsync();
 
+            var assignments = await _context.Assignments
+              .Where(q => q.ModuleId == id)
+              .OrderByDescending(q => q.DueDate)
+              .ToListAsync();
+
+            var submissions = await _context.AssignmentSubmissions
+             .Where(q => q.StudentId == userId)
+             .ToListAsync();
+
             var viewModel = new ModuleDetailsViewModel
             {
                 Module = module,
                 StudyMaterials = studyMaterials,
-                Quizzes = quizzes
+                Quizzes = quizzes,
+                Assignments = assignments,
+                Submissions = submissions
             };
 
             return View(viewModel);
+        }
+
+        public IActionResult SubmitAssignment(int assignmentId)
+        {
+            // Get assignment details
+            var assignment = _context.Assignments
+                .Include(a => a.Module)
+                .FirstOrDefault(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+                return NotFound();
+
+            // Get previous submission if exists
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var previousSubmission = _context.AssignmentSubmissions
+                .FirstOrDefault(s => s.AssignmentId == assignmentId && s.StudentId == userId);
+
+            var viewModel = new AssignmentSubmissionViewModel
+            {
+                AssignmentId = assignmentId,
+                Assignment = assignment,
+                ModuleName = assignment.Module.ModuleName,
+                PreviousSubmission = previousSubmission
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitAssignment(AssignmentSubmissionViewModel model, IFormFile submissionFile)
+        {
+            if (submissionFile == null)
+            {
+                ModelState.AddModelError("SubmissionFile", "Please select a file to upload");
+                return View(model);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var assignment = await _context.Assignments.FindAsync(model.AssignmentId);
+
+            if (assignment == null)
+                return NotFound();
+
+            // Save file
+            string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "submissions");
+            Directory.CreateDirectory(uploadsFolder);
+
+            string uniqueFileName = userId + "_" + Guid.NewGuid().ToString() + "_" + submissionFile.FileName;
+            string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                await submissionFile.CopyToAsync(fileStream);
+            }
+
+            // Create or update submission
+            var existingSubmission = await _context.AssignmentSubmissions
+                .FirstOrDefaultAsync(s => s.AssignmentId == model.AssignmentId && s.StudentId == userId);
+
+            if (existingSubmission != null)
+            {
+                // Delete old file if it exists
+                if (!string.IsNullOrEmpty(existingSubmission.FileUrl))
+                {
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), existingSubmission.FileUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                existingSubmission.FileUrl = "/submissions/" + uniqueFileName;
+                existingSubmission.Comments = model.Comments;
+                existingSubmission.SubmissionDate = DateTime.UtcNow;
+
+                _context.Update(existingSubmission);
+            }
+            else
+            {
+                var submission = new AssignmentSubmission
+                {
+                    AssignmentId = model.AssignmentId,
+                    StudentId = userId,
+                    FileUrl = "/uploads/submissions/" + uniqueFileName,
+                    Comments = model.Comments,
+                    SubmissionDate = DateTime.UtcNow
+                };
+
+                _context.AssignmentSubmissions.Add(submission);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Assignment submitted successfully.";
+            return RedirectToAction("ModuleDetails", new { id = assignment.ModuleId });
         }
 
         public async Task<IActionResult> Materials()
@@ -424,6 +531,45 @@ namespace WebApplication1.Controllers
         {
             public List<Module> Modules { get; set; }
             public List<Quiz> Quizzes { get; set; }
+        }
+
+        // GET: Student/ViewSubmission?assignmentId=6
+        public async Task<IActionResult> ViewSubmission(int assignmentId)
+        {
+            // Get the current user ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get the assignment
+            var assignment = await _context.Assignments
+                .Include(a => a.Module)
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+                return NotFound();
+
+            // Get the student's submission for this assignment
+            var submission = await _context.AssignmentSubmissions
+                .FirstOrDefaultAsync(s => s.AssignmentId == assignmentId && s.StudentId == userId);
+
+            if (submission == null)
+            {
+                TempData["ErrorMessage"] = "You haven't submitted this assignment yet.";
+                return RedirectToAction("ModuleDetails", new { id = assignment.ModuleId });
+            }
+
+            // Create the view model
+            var viewModel = new AssignmentSubmissionViewModel
+            {
+                Assignment = assignment,
+                ModuleName = assignment.Module.ModuleName,
+                FileUrl = submission.FileUrl,
+                Comments = submission.Comments,
+                SubmissionDate = submission.SubmissionDate,
+                FeedbackFromLecturer = submission.FeedbackFromLecturer,
+                Grade = submission.Grade
+            };
+
+            return View(viewModel);
         }
 
         // GET: Student/TakeQuiz/5

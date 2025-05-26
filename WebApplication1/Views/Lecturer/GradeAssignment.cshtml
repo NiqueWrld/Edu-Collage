@@ -1,0 +1,145 @@
+﻿@model WebApplication1.Models.ViewModels.GradeAssignmentViewModel
+
+@{
+    ViewData["Title"] = "Grade Assignment";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb Navigation -->
+        <nav class="mb-6 flex items-center space-x-2 text-sm font-medium text-gray-500">
+            <a href="@Url.Action("Dashboard")" class="hover:text-gray-700">Dashboard</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <a href="@Url.Action("ModuleDetails", new { id = Model.ModuleId })" class="hover:text-gray-700">@Model.ModuleName</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <a href="@Url.Action("ViewSubmissions", new { assignmentId = Model.AssignmentId })" class="hover:text-gray-700">Submissions</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-gray-900">Grade Submission</span>
+        </nav>
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Grade Assignment Submission</h1>
+            <p class="mt-1 text-sm text-gray-500">Review the submission and assign a grade.</p>
+        </div>
+
+   
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6 bg-indigo-50 border-b border-indigo-200">
+                <h2 class="text-lg font-medium text-gray-900">Submission Details</h2>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Assignment</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.AssignmentTitle</dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Student</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div>@Model.StudentName</div>
+                            <div class="text-sm text-gray-500">@Model.StudentEmail</div>
+                        </dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Submission Date</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            @Model.SubmissionDate.ToString("yyyy-MM-dd HH:mm")
+                        </dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Submitted File</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <a href="@Model.FileUrl" target="_blank" class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293L19 9.707a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                View Submission
+                            </a>
+                        </dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Current Grade</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            @if (Model.CurrentGrade.HasValue)
+                            {
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    @Model.CurrentGrade / 100
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-sm text-gray-500">Not graded yet</span>
+                            }
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6 bg-green-50 border-b border-green-200">
+                <h2 class="text-lg font-medium text-gray-900">Assignment Grading</h2>
+            </div>
+            <div class="p-6">
+                <form asp-action="GradeAssignment" method="post">
+                    <input type="hidden" asp-for="SubmissionId" />
+                    <input type="hidden" asp-for="AssignmentId" />
+                    <input type="hidden" asp-for="ModuleId" />
+
+                    <div class="mb-6">
+                        <label asp-for="Grade" class="block text-sm font-medium text-gray-700">Grade (0-100)</label>
+                        <div class="mt-1">
+                            <input asp-for="Grade" type="number" min="0" max="100" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                        </div>
+                        <span asp-validation-for="Grade" class="text-sm text-red-600"></span>
+                    </div>
+
+                    <div class="mb-6">
+                        <label asp-for="Feedback" class="block text-sm font-medium text-gray-700">Feedback to Student (Optional)</label>
+                        <div class="mt-1">
+                            <textarea asp-for="Feedback" rows="4" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                        </div>
+                        <span asp-validation-for="Feedback" class="text-sm text-red-600"></span>
+                    </div>
+
+                    <div class="flex justify-end space-x-3">
+                        <a href="@Url.Action("ViewSubmissions", new { assignmentId = Model.AssignmentId })" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </a>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Submit Grade
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Preview Section (if applicable) -->
+        @if (Model.FileUrl != null && Model.FileUrl.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+                <div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Document Preview</h2>
+                </div>
+                <div class="h-screen p-4">
+                    <iframe src="@Model.FileUrl" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

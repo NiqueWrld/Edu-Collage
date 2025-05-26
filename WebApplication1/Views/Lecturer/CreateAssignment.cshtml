@@ -1,57 +1,49 @@
-﻿@model WebApplication1.Models.ViewModels.AddStudyMaterialViewModel
+﻿@model WebApplication1.Models.ViewModels.CreateAssignmentViewModel
 @{
-    ViewData["Title"] = "Add Study Material";
+    ViewData["Title"] = "Create Assignment";
 }
 
 <div class="bg-gray-50 min-h-screen py-8">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-       
+
         <!-- Breadcrumb Navigation -->
         <nav class="mb-6 flex items-center space-x-2 text-sm font-medium text-gray-500">
             <a href="@Url.Action("Dashboard", "Lecturer")" class="hover:text-gray-700">Dashboard</a>
             <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
-            <a href="@Url.Action("ModuleDetails", new { id = Model.ModuleId })" class="hover:text-gray-700">@Model.ModuleName</a>
+            <a href="@Url.Action("ModuleDetails", new { id = Model.Assignment.ModuleId })" class="hover:text-gray-700">Module Details</a>
             <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
             </svg>
-            <span class="text-gray-900">Add Study Material</span>
+            <span class="text-gray-900">Create Assignment</span>
         </nav>
 
         <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">Add Study Material</h1>
-            <p class="mt-2 text-sm text-gray-500">
-                Adding new study material for @Model.ModuleName (@Model.CourseName)
-            </p>
+            <h1 class="text-2xl font-bold text-gray-900">Create Assignment</h1>
         </div>
 
-        <form asp-action="AddStudyMaterial" method="post" enctype="multipart/form-data">
-            <input type="hidden" asp-for="ModuleId" />
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Assignment.ModuleId" />
 
             <div class="bg-white shadow overflow-hidden sm:rounded-lg">
                 <div class="px-4 py-5 sm:p-6">
                     <div class="mb-6">
-                        <label asp-for="Title" class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                        <input asp-for="Title" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Enter material title" required />
-                        <span asp-validation-for="Title" class="text-sm text-red-600"></span>
+                        <label asp-for="Assignment.Title" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="Assignment.Title" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Enter assignment title" required />
+                        <span asp-validation-for="Assignment.Title" class="text-sm text-red-600"></span>
                     </div>
 
                     <div class="mb-6">
-                        <label asp-for="Description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea asp-for="Description" rows="4" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Provide a brief description of the material" required></textarea>
-                        <span asp-validation-for="Description" class="text-sm text-red-600"></span>
+                        <label asp-for="Assignment.Description" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <textarea asp-for="Assignment.Description" rows="4" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Provide a brief description" required></textarea>
+                        <span asp-validation-for="Assignment.Description" class="text-sm text-red-600"></span>
                     </div>
 
                     <div class="mb-6">
-                        <label asp-for="Type" class="block text-sm font-medium text-gray-700 mb-1">Material Type</label>
-                        <select asp-for="Type" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
-                            <option value="Document">Document</option>
-                            <option value="Video">Video</option>
-                            <option value="Link">External Link</option>
-                            <option value="Assignment">Assignment</option>
-                        </select>
-                        <span asp-validation-for="Type" class="text-sm text-red-600"></span>
+                        <label asp-for="Assignment.DueDate" class="block text-sm font-medium text-gray-700 mb-1"></label>
+                        <input asp-for="Assignment.DueDate" type="date" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" required />
+                        <span asp-validation-for="Assignment.DueDate" class="text-sm text-red-600"></span>
                     </div>
 
                     <div class="mb-6">
@@ -61,7 +53,7 @@
                                 <div class="mt-1">
                                     <div class="flex items-center">
                                         <input type="radio" id="uploadFile" name="resourceType" value="file" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 mr-2" checked>
-                                        <label for="uploadFile" class="block text-sm font-medium text-gray-700">Upload File</label>
+                                        <label for="uploadFile" class="block text-sm font-medium text-gray-700">Upload PDF</label>
                                     </div>
                                     <div class="flex items-center mt-2">
                                         <input type="radio" id="provideUrl" name="resourceType" value="url" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 mr-2">
@@ -71,7 +63,7 @@
                             </div>
 
                             <div id="fileUploadSection" class="col-span-1">
-                                <label asp-for="ResourceFile" class="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
+                                <label asp-for="ResourceFile" class="block text-sm font-medium text-gray-700 mb-1">Upload PDF</label>
                                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                                     <div class="space-y-1 text-center">
                                         <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -79,32 +71,32 @@
                                         </svg>
                                         <div class="flex text-sm text-gray-600">
                                             <label for="ResourceFile" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500">
-                                                <span>Upload a file</span>
-                                                <input id="ResourceFile"required asp-for="ResourceFile" type="file" class="sr-only">
+                                                <span>Upload a PDF</span>
+                                                <input id="ResourceFile" asp-for="ResourceFile" type="file" accept="application/pdf" class="sr-only">
                                             </label>
                                             <p class="pl-1">or drag and drop</p>
                                         </div>
-                                        <p class="text-xs text-gray-500">PDF, DOC, PPT, ZIP, etc.</p>
+                                        <p class="text-xs text-gray-500">PDF only, max 10MB.</p>
                                     </div>
                                 </div>
                                 <span id="selectedFileName" class="text-sm text-gray-700 mt-1"></span>
                             </div>
 
                             <div id="urlSection" class="col-span-1 hidden">
-                                <label asp-for="ResourceUrl" class="block text-sm font-medium text-gray-700 mb-1">Resource URL</label>
-                                <input asp-for="ResourceUrl" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="https://example.com/resource" />
-                                <span asp-validation-for="ResourceUrl" class="text-sm text-red-600"></span>
+                                <label asp-for="Assignment.ResourceUrl" class="block text-sm font-medium text-gray-700 mb-1">Resource URL</label>
+                                <input asp-for="Assignment.ResourceUrl" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="https://example.com/resource" />
+                                <span asp-validation-for="Assignment.ResourceUrl" class="text-sm text-red-600"></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
-                    <a href="@Url.Action("ModuleDetails", new { id = Model.ModuleId })" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none mr-2">
+                    <a href="@Url.Action("ModuleDetails", new { id = Model.Assignment.ModuleId })" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none mr-2">
                         Cancel
                     </a>
                     <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
-                        Add Material
+                        Create Assignment
                     </button>
                 </div>
             </div>
@@ -120,6 +112,7 @@
             const fileSection = document.getElementById('fileUploadSection');
             const urlSection = document.getElementById('urlSection');
             const fileInput = document.getElementById('ResourceFile');
+            const urlInput = document.getElementById('Assignment_ResourceUrl');
             const fileNameSpan = document.getElementById('selectedFileName');
 
             // Handle toggle between file upload and URL input
@@ -127,9 +120,8 @@
                 if (this.checked) {
                     fileSection.classList.remove('hidden');
                     urlSection.classList.add('hidden');
-
                     fileInput.required = true;
-        urlInput.required = false;
+                    urlInput.required = false;
                 }
             });
 
@@ -137,11 +129,9 @@
                 if (this.checked) {
                     fileSection.classList.add('hidden');
                     urlSection.classList.remove('hidden');
-
                     fileInput.required = false;
-        urlInput.required = true;
+                    urlInput.required = true;
                 }
-
             });
 
             // Display selected file name
@@ -156,34 +146,33 @@
             // Form validation
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
-                const title = document.getElementById('Title').value.trim();
+                const title = document.getElementById('Assignment_Title').value.trim();
                 const resourceType = document.querySelector('input[name="resourceType"]:checked').value;
 
                 if (!title) {
                     e.preventDefault();
-                    alert('Please enter a title for the study material.');
+                    alert('Please enter a title for the assignment.');
                     return;
                 }
 
-                    if (resourceType === 'file') {
-            if (!fileInput.files || fileInput.files.length === 0) {
-                e.preventDefault();
-                alert('Please select a file to upload.');
-                return;
-            }
-            // Clear URL input so it doesn't post invalid data
-            urlInput.value = '';
-        } else if (resourceType === 'url') {
-            const url = urlInput.value.trim();
-            if (!url) {
-                e.preventDefault();
-                alert('Please enter a valid URL.');
-                return;
-            }
-            // Clear file input so it doesn't post invalid data
-            fileInput.value = '';
-        }
+                if (resourceType === 'file') {
+                    if (!fileInput.files || fileInput.files.length === 0) {
+                        e.preventDefault();
+                        alert('Please select a PDF file to upload.');
+                        return;
+                    }
+                    urlInput.value = '';
+                } else if (resourceType === 'url') {
+                    const url = urlInput.value.trim();
+                    if (!url) {
+                        e.preventDefault();
+                        alert('Please enter a valid URL.');
+                        return;
+                    }
+                    fileInput.value = '';
+                }
             });
         });
     </script>
+    <partial name="_ValidationScriptsPartial" />
 }

@@ -73,7 +73,10 @@ public class NexelContext : IdentityDbContext<IdentityUser>
     public DbSet<Student> Students { get; set; }
     public DbSet<Course> Courses { get; set; }
     public DbSet<Module> Modules { get; set; }
+    public DbSet<Assignment> Assignments { get; set; }
     public DbSet<Application> Applications { get; set; }
+    public DbSet<AssignmentSubmission> AssignmentSubmissions { get; set; }
+    
     public DbSet<Payment> Payments { get; set; }
     public DbSet<LibraryBooking> LibraryBookings { get; set; }
 

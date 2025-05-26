@@ -13,6 +13,8 @@ namespace WebApplication1.Models.ViewModels
         public Module Module { get; set; }
         public int StudyMaterialsCount { get; set; }
         public int QuizzesCount { get; set; }
+        public int AssignmentsCount { get; set; }
+
     }
 
     public class LectureViewModels
@@ -25,7 +27,9 @@ namespace WebApplication1.Models.ViewModels
     public class ModuleDetailsViewModel
     {
         public Module Module { get; set; }
+        public List<AssignmentSubmission> Submissions { get; set; }
         public List<StudyMaterial> StudyMaterials { get; set; }
+        public List<Assignment> Assignments { get; set; }
         public List<Quiz> Quizzes { get; set; }
     }
 

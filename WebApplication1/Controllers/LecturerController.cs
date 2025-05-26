@@ -27,6 +27,257 @@ namespace WebApplication1.Controllers
             _webHostEnvironment = webHostEnvironment;
         }
 
+        public async Task<IActionResult> CreateAssignment(int moduleId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == moduleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+            {
+                return Forbid();
+            }
+
+            var viewModel = new CreateAssignmentViewModel
+            {
+                Assignment = new Assignment
+                {
+                    ModuleId = moduleId,
+                    DueDate = DateTime.Today
+                }
+            };
+            return View(viewModel);
+        }
+
+        // GET: Lecturer/EditAssignment/5
+        public async Task<IActionResult> EditAssignment(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var assignment = await _context.Assignments
+                .Include(a => a.Module)
+                .FirstOrDefaultAsync(a => a.AssignmentId == id);
+
+            if (assignment == null)
+                return NotFound();
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == assignment.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+                return Forbid();
+
+            return View(assignment);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAssignment(Assignment assignment)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == assignment.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+                return Forbid();
+
+            _context.Assignments.Update(assignment);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Assignment updated successfully.";
+            return RedirectToAction("ModuleDetails", new { id = assignment.ModuleId });
+        }
+
+        public async Task<IActionResult> ViewSubmissions(int assignmentId)
+        {
+            var assignment = await _context.Assignments
+                .FirstOrDefaultAsync(a => a.AssignmentId == assignmentId);
+
+            if (assignment == null)
+            {
+                return NotFound();
+            }
+
+            var module = await _context.Modules
+                .FirstOrDefaultAsync(m => m.ModuleId == assignment.ModuleId);
+
+            var submissionEntities = await _context.AssignmentSubmissions
+                .Include(s => s.Student)
+                .Where(s => s.AssignmentId == assignmentId)
+                .OrderByDescending(s => s.SubmissionDate)
+                .ToListAsync();
+
+            // Map from AssignmentSubmission entities to SubmissionViewModel objects
+            var submissions = submissionEntities.Select(s => new SubmissionViewModel
+            {
+                SubmissionId = s.Id,
+                Student = s.Student,
+                SubmissionDate = s.SubmissionDate,
+                FileUrl = s.FileUrl,
+                Grade = s.Grade
+            }).ToList();
+
+            var viewModel = new AssignmentSubmissionViewModel
+            {
+                Assignment = assignment,
+                ModuleName = module?.ModuleName ?? "Unknown Module",
+                Submissions = submissions
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> GradeAssignment(int submissionId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var submission = await _context.AssignmentSubmissions
+                .Include(s => s.Student)
+                .Include(s => s.Assignment)
+                    .ThenInclude(a => a.Module)
+                .FirstOrDefaultAsync(s => s.Id == submissionId);
+
+            if (submission == null)
+            {
+                return NotFound();
+            }
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == submission.Assignment.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+            {
+                return Forbid();
+            }
+
+            var viewModel = new GradeAssignmentViewModel
+            {
+                SubmissionId = submission.Id,
+                StudentName = submission.Student.UserName,
+                StudentEmail = submission.Student.Email,
+                AssignmentId = submission.AssignmentId,
+                AssignmentTitle = submission.Assignment.Title,
+                ModuleId = submission.Assignment.ModuleId,
+                ModuleName = submission.Assignment.Module.ModuleName,
+                SubmissionDate = submission.SubmissionDate,
+                FileUrl = submission.FileUrl,
+                CurrentGrade = submission.Grade
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GradeAssignment(GradeAssignmentViewModel model)
+        {
+          
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var submission = await _context.AssignmentSubmissions
+                .Include(s => s.Assignment)
+                .FirstOrDefaultAsync(s => s.Id == model.SubmissionId);
+
+            if (submission == null)
+            {
+                return NotFound();
+            }
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == submission.Assignment.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+            {
+                return Forbid();
+            }
+
+            // Validate grade
+            if (model.Grade < 0 || model.Grade > 100)
+            {
+                ModelState.AddModelError("Grade", "Grade must be between 0 and 100");
+                return View(model);
+            }
+
+            // Update the grade
+            submission.Grade = model.Grade;
+            if (!string.IsNullOrEmpty(model.Feedback))
+            {
+                submission.FeedbackFromLecturer = model.Feedback;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Assignment graded successfully.";
+            return RedirectToAction(nameof(ViewSubmissions), new { assignmentId = submission.AssignmentId });
+        }
+
+        [HttpPost, ActionName("DeleteAssignment")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssignmentConfirmed(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var assignment = await _context.Assignments.FindAsync(id);
+            if (assignment == null)
+                return NotFound();
+
+            // Check if lecturer is assigned to this module
+            var moduleAssignment = await _context.ModuleLecturers
+                .FirstOrDefaultAsync(ml => ml.ModuleId == assignment.ModuleId && ml.LecturerId == userId);
+
+            if (moduleAssignment == null)
+                return Forbid();
+
+            int moduleId = assignment.ModuleId;
+            _context.Assignments.Remove(assignment);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Assignment deleted successfully.";
+            return RedirectToAction("ModuleDetails", new { id = moduleId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAssignment(CreateAssignmentViewModel viewModel)
+        {
+            if (viewModel.ResourceFile != null && viewModel.ResourceFile.Length > 0)
+            {
+                // Only allow PDF
+                if (Path.GetExtension(viewModel.ResourceFile.FileName).ToLower() != ".pdf")
+                {
+                    ModelState.AddModelError("ResourceFile", "Only PDF files are allowed.");
+                    return View(viewModel);
+                }
+
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "assignments");
+                Directory.CreateDirectory(uploadsFolder);
+
+                string uniqueFileName = Guid.NewGuid() + "_" + Path.GetFileName(viewModel.ResourceFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await viewModel.ResourceFile.CopyToAsync(fileStream);
+                }
+
+                // Save the relative path to the database
+                viewModel.Assignment.ResourceUrl = "/uploads/assignments/" + uniqueFileName;
+            }
+            // else: use the URL entered by the user (already in viewModel.Assignment.ResourceUrl)
+
+            _context.Assignments.Add(viewModel.Assignment);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ModuleDetails", new { id = viewModel.Assignment.ModuleId });
+        }
+
         // GET: Dashboard
         public async Task<IActionResult> Dashboard()
         {
@@ -53,11 +304,15 @@ namespace WebApplication1.Controllers
                 var quizzesCount = await _context.Quizzes
                     .CountAsync(q => q.ModuleId == module.ModuleId);
 
+                var assignmentsCount = await _context.Assignments
+                  .CountAsync(q => q.ModuleId == module.ModuleId);
+
                 moduleStats.Add(new ModuleStatViewModel
                 {
                     Module = module,
                     StudyMaterialsCount = studyMaterialsCount,
-                    QuizzesCount = quizzesCount
+                    QuizzesCount = quizzesCount,
+                    AssignmentsCount = assignmentsCount
                 });
             }
 
@@ -105,11 +360,18 @@ namespace WebApplication1.Controllers
                 .OrderByDescending(q => q.CreatedDate)
                 .ToListAsync();
 
+            // Get assignments for this module
+            var assignments = await _context.Assignments
+                .Where(q => q.ModuleId == id)
+                .OrderByDescending(q => q.DueDate)
+                .ToListAsync();
+
             var viewModel = new ModuleDetailsViewModel
             {
                 Module = module,
                 StudyMaterials = studyMaterials,
-                Quizzes = quizzes
+                Quizzes = quizzes,
+                Assignments = assignments
             };
 
             return View(viewModel);

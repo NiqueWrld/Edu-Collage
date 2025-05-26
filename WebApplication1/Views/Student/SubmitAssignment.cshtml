@@ -1,0 +1,105 @@
+﻿@model WebApplication1.Models.ViewModels.AssignmentSubmissionViewModel
+@{
+    ViewData["Title"] = "Submit Assignment";
+}
+
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb Navigation -->
+        <nav class="mb-6 flex items-center space-x-2 text-sm font-medium text-gray-500">
+            <a href="@Url.Action("Materials")" class="hover:text-gray-700">My Modules</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <a href="@Url.Action("ModuleDetails", new { id = Model.Assignment.ModuleId })" class="hover:text-gray-700">@Model.ModuleName</a>
+            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-gray-900">Submit Assignment</span>
+        </nav>
+
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Submit Assignment</h1>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6">
+                <h2 class="text-lg font-medium text-gray-900">@Model.Assignment.Title</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Due: @Model.Assignment.DueDate.ToString("yyyy-MM-dd")</p>
+            </div>
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Description</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Assignment.Description</dd>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Assignment.ResourceUrl))
+                    {
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Assignment File</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <a href="@Model.Assignment.ResourceUrl" target="_blank" class="text-indigo-600 hover:text-indigo-500">
+                                    Download Assignment
+                                </a>
+                            </dd>
+                        </div>
+                    }
+                    @if (Model.PreviousSubmission != null)
+                    {
+                        <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">Previous Submission</dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                <div class="flex items-center">
+                                    <a href="@Model.PreviousSubmission.FileUrl" target="_blank" class="text-indigo-600 hover:text-indigo-500">
+                                        View Previous Submission
+                                    </a>
+                                    <span class="ml-4 text-gray-500">Submitted on @Model.PreviousSubmission.SubmissionDate.ToString("yyyy-MM-dd HH:mm")</span>
+                                </div>
+                            </dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <form asp-action="SubmitAssignment" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="AssignmentId" />
+
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="mb-6">
+                        <label for="SubmissionFile" class="block text-sm font-medium text-gray-700">Upload Your Work</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div class="flex text-sm text-gray-600">
+                                    <label for="SubmissionFile" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <span>Upload a file</span>
+                                        <input id="SubmissionFile" name="SubmissionFile" type="file" class="sr-only" required>
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-gray-500">PDF, DOCX, or ZIP up to 10MB</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="Comments" class="block text-sm font-medium text-gray-700">Comments</label>
+                        <textarea id="Comments" name="Comments" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md" placeholder="Add any comments about your submission"></textarea>
+                    </div>
+                </div>
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                    <a href="@Url.Action("ModuleDetails", new { id = Model.Assignment.ModuleId })" class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-2">
+                        Cancel
+                    </a>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Submit Assignment
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
