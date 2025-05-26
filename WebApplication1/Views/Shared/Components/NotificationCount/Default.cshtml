@@ -1,0 +1,8 @@
+﻿@model int
+
+@if (Model > 0)
+{
+    <span class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
+        @(Model > 9 ? "9+" : Model)
+    </span>
+}

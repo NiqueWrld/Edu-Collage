@@ -89,4 +89,5 @@ public class NexelContext : IdentityDbContext<IdentityUser>
     public DbSet<QuizQuestion> QuizQuestions { get; set; }
     public DbSet<StudentQuizAttempt> StudentQuizAttempts { get; set; }
     public DbSet<StudentAnswer> StudentAnswers { get; set; }
+    public DbSet<Notification> Notifications { get; internal set; }
 }

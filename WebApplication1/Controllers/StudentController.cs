@@ -10,6 +10,7 @@ using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModels;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -22,28 +23,16 @@ namespace WebApplication1.Controllers
         private readonly Cloudinary _cloudinary;
         private readonly ILogger<StudentController> _logger;
         private readonly BraintreeGateway _braintreeGateway;
+        private NotificationService _notificationService;
 
-        public StudentController(NexelContext context, UserManager<IdentityUser> userManager, IConfiguration configuration, BraintreeGateway braintreeGateway, ILogger<StudentController> logger = null)
+        public StudentController(NexelContext context, UserManager<IdentityUser> userManager, IConfiguration configuration, BraintreeGateway braintreeGateway, NotificationService notificationService,  ILogger<StudentController> logger = null )
         {
             _context = context;
             _userManager = userManager;
             _configuration = configuration;
             _logger = logger;
             _braintreeGateway = braintreeGateway;
-
-            try
-            {
-                var account = new Account(
-                    _configuration["Cloudinary:CloudName"],
-                    _configuration["Cloudinary:ApiKey"],
-                    _configuration["Cloudinary:ApiSecret"]);
-
-                _cloudinary = new Cloudinary(account);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError($"Failed to initialize Cloudinary: {ex.Message}");
-            }
+            _notificationService = notificationService;
         }
 
 
@@ -535,6 +524,31 @@ namespace WebApplication1.Controllers
             };
 
             return View(viewModel);
+        }
+
+        // Add this action to your StudentController
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var notifications = await _notificationService.GetUserNotificationsAsync(userId, 50);
+            return View(notifications);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notificationService.MarkNotificationAsReadAsync(id, userId);
+            return RedirectToAction(nameof(Notifications));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notificationService.MarkAllNotificationsAsReadAsync(userId);
+            return RedirectToAction(nameof(Notifications));
         }
 
         public class StudentCalendarViewModel

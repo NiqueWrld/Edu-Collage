@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModels;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -16,15 +17,18 @@ namespace WebApplication1.Controllers
         private readonly NexelContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private NotificationService _notificationService;
 
         public LecturerController(
             NexelContext context,
             UserManager<IdentityUser> userManager,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            NotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
             _webHostEnvironment = webHostEnvironment;
+            _notificationService = notificationService;
         }
 
         public async Task<IActionResult> CreateAssignment(int moduleId)
@@ -173,6 +177,31 @@ namespace WebApplication1.Controllers
             return View(viewModel);
         }
 
+        // Add this action to your LecturerController
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var notifications = await _notificationService.GetUserNotificationsAsync(userId, 50);
+            return View(notifications);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAsRead(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notificationService.MarkNotificationAsReadAsync(id, userId);
+            return RedirectToAction(nameof(Notifications));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notificationService.MarkAllNotificationsAsReadAsync(userId);
+            return RedirectToAction(nameof(Notifications));
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GradeAssignment(GradeAssignmentViewModel model)
@@ -274,6 +303,22 @@ namespace WebApplication1.Controllers
 
             _context.Assignments.Add(viewModel.Assignment);
             await _context.SaveChangesAsync();
+
+            // Get all students in this module
+            var enrolledStudents = await _context.Applications
+                .Where(a => a.Status == Application.ApplicationStatus.Approved && a.PaymentId != null)
+                .Where(a => a.Course.Modules.Any(m => m.ModuleId == viewModel.Assignment.ModuleId))
+                .Select(a => a.IdentityUserId)
+                .ToListAsync();
+
+            // Create notification for all students
+            await _notificationService.CreateBulkNotificationsAsync(
+                enrolledStudents,
+                "New Assignment Posted",
+                $"A new assignment '{viewModel.Assignment.Title}' has been posted for {viewModel.Assignment.Module.ModuleName}.",
+                $"/Student/SubmitAssignment/{viewModel.Assignment.AssignmentId}",
+                NotificationType.Assignment
+            );
 
             return RedirectToAction("ModuleDetails", new { id = viewModel.Assignment.ModuleId });
         }
