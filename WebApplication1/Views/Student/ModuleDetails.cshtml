@@ -308,6 +308,7 @@
 
                             // Check if student has submitted this assignment
                             var hasSubmission = Model.Submissions?.Any(s => s.AssignmentId == assignment.AssignmentId && s.StudentId == User.FindFirstValue(ClaimTypes.NameIdentifier)) ?? false;
+                            var isGraded = Model.Submissions?.Any(s => s.AssignmentId == assignment.AssignmentId && s.Grade != null && s.StudentId == User.FindFirstValue(ClaimTypes.NameIdentifier)) ?? false;
 
                             <li>
                                 <div class="px-4 py-4 sm:px-6">
@@ -327,11 +328,20 @@
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                     </svg>
-                                                    <span>Due: @assignment.DueDate.ToString("yyyy-MM-dd")</span>
+                                                    <span>Due: @assignment.DueDate.ToString("yyyy-MM-dd HH:mm")</span>
                                                 </div>
                                             </div>
                                             <div class="mt-2 flex">
-                                                @if (hasSubmission)
+
+                                                @if (isGraded){
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        Graded
+                                                    </span>
+                                                }
+                                                else if (hasSubmission)
                                                 {
                                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -382,7 +392,7 @@
                                                 </a>
                                             }
 
-                                            @if(!isOverdue){
+                                            @if (!isOverdue && !isGraded){
                                             <a href="@Url.Action("SubmitAssignment", new { assignmentId = assignment.AssignmentId })" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                                                     <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />

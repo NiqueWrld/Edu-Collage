@@ -517,11 +517,21 @@ namespace WebApplication1.Controllers
                 .Where(q => moduleIds.Contains(q.ModuleId))
                 .ToListAsync();
 
+            var assignments = await _context.Assignments
+        .Where(a => moduleIds.Contains(a.ModuleId))
+        .ToListAsync();
+
+            var assignmentSubmissions = await _context.AssignmentSubmissions
+       .Where(s => s.StudentId == userId)
+       .ToListAsync();
+
             // Pass both to the view
             var viewModel = new StudentCalendarViewModel
             {
                 Modules = modules,
-                Quizzes = quizzes
+                Quizzes = quizzes,
+                Assignments = assignments,
+                AssignmentSubmissions = assignmentSubmissions
             };
 
             return View(viewModel);
@@ -531,6 +541,8 @@ namespace WebApplication1.Controllers
         {
             public List<Module> Modules { get; set; }
             public List<Quiz> Quizzes { get; set; }
+            public List<Assignment> Assignments { get; set; }
+            public List<AssignmentSubmission> AssignmentSubmissions { get; set; }
         }
 
         // GET: Student/ViewSubmission?assignmentId=6
@@ -663,7 +675,7 @@ namespace WebApplication1.Controllers
             // Get current user ID
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Get all attempts with related data
+            // Get all quiz attempts with related data (existing code)
             var attempts = await _context.StudentQuizAttempts
                 .Include(a => a.Quiz)
                     .ThenInclude(q => q.Module)
@@ -672,7 +684,7 @@ namespace WebApplication1.Controllers
                 .OrderByDescending(a => a.StartTime)
                 .ToListAsync();
 
-            // Group attempts by quiz
+            // Group attempts by quiz (existing code)
             var quizGroups = attempts
                 .GroupBy(a => a.Quiz.QuizId)
                 .Select(g => new QuizAttemptsViewModel
@@ -682,21 +694,33 @@ namespace WebApplication1.Controllers
                 })
                 .ToList();
 
-            // Calculate overall statistics
+            // Get assignment submissions for the current user
+            var assignmentSubmissions = await _context.AssignmentSubmissions
+                .Include(a => a.Assignment)
+                    .ThenInclude(a => a.Module)
+                .Where(a => a.StudentId == userId)
+                .OrderByDescending(a => a.SubmissionDate)
+                .ToListAsync();
+
+            // Calculate combined statistics
             var statistics = new Dictionary<string, object>
     {
         { "TotalQuizzes", quizGroups.Count },
         { "TotalAttempts", attempts.Count },
         { "CompletedAttempts", attempts.Count(a => a.IsSubmitted) },
         { "AverageScore", attempts.Where(a => a.IsSubmitted && a.Score.HasValue).Select(a => a.Score.Value).DefaultIfEmpty(0).Average() },
-        { "BestOverallScore", attempts.Where(a => a.IsSubmitted && a.Score.HasValue).Select(a => a.Score.Value).DefaultIfEmpty(0).Max() }
+        { "BestOverallScore", attempts.Where(a => a.IsSubmitted && a.Score.HasValue).Select(a => a.Score.Value).DefaultIfEmpty(0).Max() },
+        // Assignment statistics
+        { "TotalAssignments", assignmentSubmissions.Select(a => a.AssignmentId).Distinct().Count() },
+        { "SubmittedAssignments", assignmentSubmissions.Count },
+        { "GradedAssignments", assignmentSubmissions.Count(a => a.Grade.HasValue) },
+        { "AverageAssignmentGrade", assignmentSubmissions.Where(a => a.Grade.HasValue).Select(a => a.Grade.Value).DefaultIfEmpty(0).Average() }
     };
 
             ViewBag.Statistics = statistics;
-
-            // Set ViewBag values with the exact requested format
-            ViewBag.CurrentDateTime = "2025-05-16 11:06:58";
-            ViewBag.CurrentUser = "NiqueWrld";
+            ViewBag.AssignmentSubmissions = assignmentSubmissions;
+            ViewBag.CurrentDateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            ViewBag.CurrentUser = User.Identity.Name;
 
             return View(quizGroups);
         }
@@ -710,7 +734,7 @@ namespace WebApplication1.Controllers
             // Get user details
             var user = await _userManager.FindByIdAsync(userId);
 
-            // Get all attempts with related data
+            // Get all attempts with related data (existing code)
             var attempts = await _context.StudentQuizAttempts
                 .Include(a => a.Quiz)
                     .ThenInclude(q => q.Module)
@@ -720,17 +744,26 @@ namespace WebApplication1.Controllers
                 .OrderByDescending(a => a.StartTime)
                 .ToListAsync();
 
+            // Get assignment submissions
+            var assignmentSubmissions = await _context.AssignmentSubmissions
+                .Include(a => a.Assignment)
+                    .ThenInclude(a => a.Module)
+                .Where(a => a.StudentId == userId)
+                .OrderByDescending(a => a.SubmissionDate)
+                .ToListAsync();
+
             // Create the report data
             var reportData = new
             {
                 UserName = user.UserName,
-                GeneratedDate = "2025-05-16 11:06:58",
+                UserFullName = user.UserName, // Replace with actual name property if available
+                GeneratedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 TotalAttempts = attempts.Count,
                 CompletedAttempts = attempts.Count(a => a.IsSubmitted),
                 AverageScore = attempts.Where(a => a.Score.HasValue)
-                                      .Select(a => a.Score.Value)
-                                      .DefaultIfEmpty(0)
-                                      .Average(),
+                                       .Select(a => a.Score.Value)
+                                       .DefaultIfEmpty(0)
+                                       .Average(),
                 ModuleDetails = attempts
                     .GroupBy(a => a.Quiz.Module.ModuleId)
                     .Select(g => new
@@ -753,6 +786,18 @@ namespace WebApplication1.Controllers
                                    .ToList()
                     })
                     .OrderBy(m => m.ModuleName)
+                    .ToList(),
+                // Add assignment submission data
+                AssignmentSubmissions = assignmentSubmissions
+                    .Select(a => new
+                    {
+                        Title = a.Assignment.Title,
+                        ModuleName = a.Assignment.Module.ModuleName,
+                        ModuleCode = a.Assignment.Module.ModuleCode,
+                        SubmissionDate = a.SubmissionDate.ToString("yyyy-MM-dd"),
+                        Grade = a.Grade,
+                        HasFeedback = !string.IsNullOrEmpty(a.FeedbackFromLecturer)
+                    })
                     .ToList()
             };
 

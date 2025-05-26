@@ -69,44 +69,107 @@
                 </div>
             </div>
 
-            <!-- Upcoming Quizzes -->
-            <div>
-                <h2 class="text-lg font-semibold text-red-700 mb-3">Upcoming Quizzes</h2>
-                
-                <ul class="divide-y divide-gray-200 bg-white rounded shadow">
-                    @foreach (var quiz in Model.Quizzes
-                    .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
-                    .OrderBy(q => q.StartDate))
-                    {
-                        var quizModule = Model.Modules.FirstOrDefault(m => m.ModuleId == quiz.ModuleId);
-                        if (quizModule == null || quizModule.Semester != currentSemester) { continue; }
+            <div class="md:col-span-1 space-y-6">
+                <!-- Upcoming Quizzes -->
+                <div>
+                    <h2 class="text-lg font-semibold text-red-700 mb-3">Upcoming Quizzes</h2>
 
-                        <li class="p-4">
-                            <div class="font-medium text-gray-900">@quiz.Title</div>
-                            <div class="text-sm text-gray-500">
-                                @quiz.StartDate?.ToString("dddd, MMM d yyyy, HH:mm")
-                                @if (quiz.EndDate.HasValue)
-                                {
-                                    <span> - @quiz.EndDate.Value.ToString("HH:mm")</span>
-                                }
-                            </div>
-                            <div class="text-xs text-gray-400 mb-2">@quizModule.ModuleName</div>
+                    <ul class="divide-y divide-gray-200 bg-white rounded shadow">
+                        @foreach (var quiz in Model.Quizzes
+                                                .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
+                                                .OrderBy(q => q.StartDate))
+                        {
+                            var quizModule = Model.Modules.FirstOrDefault(m => m.ModuleId == quiz.ModuleId);
+                            if (quizModule == null || quizModule.Semester != currentSemester) { continue; }
 
-                            <a href="@Url.Action("StartQuiz", new { quizId = quiz.QuizId })"
-                               class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded">
-                                Take Quiz
-                            </a>
-                        </li>
-                    }
+                            <li class="p-4">
+                                <div class="font-medium text-gray-900">@quiz.Title</div>
+                                <div class="text-sm text-gray-500">
+                                    @quiz.StartDate?.ToString("dddd, MMM d yyyy, HH:mm")
+                                    @if (quiz.EndDate.HasValue)
+                                    {
+                                        <span> - @quiz.EndDate.Value.ToString("HH:mm")</span>
+                                    }
+                                </div>
+                                <div class="text-xs text-gray-400 mb-2">@quizModule.ModuleName</div>
 
-                    @if (!Model.Quizzes
-                    .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
-                    .Any(q => Model.Modules.FirstOrDefault(m => m.ModuleId == q.ModuleId)?.Semester == currentSemester))
-                    {
-                        <li class="p-4 text-gray-500">No upcoming quizzes this semester.</li>
-                    }
+                                <a href="@Url.Action("StartQuiz", new { quizId = quiz.QuizId })"
+                                   class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-2 px-4 rounded">
+                                    Take Quiz
+                                </a>
+                            </li>
+                        }
 
-                </ul>
+                        @if (!Model.Quizzes
+                                                .Where(q => !q.EndDate.HasValue || q.EndDate.Value > now)
+                                                .Any(q => Model.Modules.FirstOrDefault(m => m.ModuleId == q.ModuleId)?.Semester == currentSemester))
+                        {
+                            <li class="p-4 text-gray-500">No upcoming quizzes this semester.</li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Upcoming Assignments -->
+                <div>
+                    <h2 class="text-lg font-semibold text-green-700 mb-3">Upcoming Assignments</h2>
+
+                    <ul class="divide-y divide-gray-200 bg-white rounded shadow">
+                        @if (Model.Assignments != null)
+                        {
+                            var upcomingAssignments = Model.Assignments
+                            .Where(a => a.DueDate > now)
+                            .OrderBy(a => a.DueDate)
+                            .ToList();
+
+                            foreach (var assignment in upcomingAssignments)
+                            {
+                                var assignmentModule = Model.Modules.FirstOrDefault(m => m.ModuleId == assignment.ModuleId);
+                                if (assignmentModule == null || assignmentModule.Semester != currentSemester) { continue; }
+
+                                <li class="p-4">
+                                    <div class="font-medium text-gray-900">@assignment.Title</div>
+                                    <div class="text-sm text-gray-500">
+                                        Due: @assignment.DueDate.ToString("dddd, MMM d yyyy, HH:mm")
+                                    </div>
+                                    <div class="text-xs text-gray-400 mb-2">@assignmentModule.ModuleName</div>
+
+                                    @{
+                                        // Check if student has already submitted
+                                        var hasSubmitted = Model.AssignmentSubmissions?.Any(s => s.AssignmentId == assignment.AssignmentId) ?? false;
+                                    }
+
+                                    @if (hasSubmitted)
+                                    {
+                                        <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Submitted
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("SubmitAssignment", new { assignmentId = assignment.AssignmentId })"
+                                           class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm font-semibold py-2 px-4 rounded">
+                                            Submit Assignment
+                                        </a>
+                                    }
+                                </li>
+                            }
+
+                            @if (!upcomingAssignments.Any(a => Model.Modules.FirstOrDefault(m => m.ModuleId == a.ModuleId)?.Semester == currentSemester))
+                            {
+                                <li class="p-4 text-gray-500">No upcoming assignments this semester.</li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="p-4 text-gray-500">No upcoming assignments this semester.</li>
+                        }
+                    </ul>
+                </div>
+
+              
             </div>
         </div>
     </div>
