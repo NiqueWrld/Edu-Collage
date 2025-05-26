@@ -615,14 +615,6 @@ namespace WebApplication1.Controllers
                 model.CorrectAnswer = Request.Form["trueFalseOption"];
             }
 
-
-                if (model.CorrectAnswer == null)
-            {
-                //Console.Beep();
-                return NotFound();
-            }
-
-
                 // Handle correct answer
                 if (model.Type == QuestionType.MultipleChoice || model.Type == QuestionType.TrueFalse)
                 {
@@ -1087,7 +1079,8 @@ namespace WebApplication1.Controllers
 
             _context.SaveChanges();
 
-            return RedirectToAction("Index");
+            return RedirectToAction("ModuleDetails");
+            return RedirectToAction(nameof(Module), new { id = module.ModuleId });
         }
 
         #endregion

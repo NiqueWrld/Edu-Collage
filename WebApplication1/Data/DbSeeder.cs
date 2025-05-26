@@ -13,7 +13,7 @@ namespace WebApplication1.Data
 
             string[] roleNames = { "Admin", "Student", "Lecturer" };
 
-            // Seed roles
+            // Seed roles 
             foreach (var roleName in roleNames)
             {
                 if (!await roleManager.RoleExistsAsync(roleName))

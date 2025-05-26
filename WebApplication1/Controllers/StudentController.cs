@@ -326,12 +326,67 @@ namespace WebApplication1.Controllers
             // 2. If unlimited attempts or not reached max, allow starting new attempt
             if (quiz.MaxAttempts == 0 || attempts.Count < quiz.MaxAttempts)
             {
-                return View(quiz);
+                ViewBag.CanStartQuiz = true;
             }
 
-            // 3. Otherwise, max attempts reached and all are submitted: show results
-            return RedirectToAction("QuizResults", new { quizId = quiz.QuizId });
+            return View(quiz);
+
         }
+
+        // GET: Student/StudentProgress?moduleId=4
+        public async Task<IActionResult> StudentProgress(int moduleId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get all quizzes for the module
+            var quizzes = await _context.Quizzes
+                .Where(q => q.ModuleId == moduleId && q.IsPublished)
+                .Include(q => q.Questions)
+                .ToListAsync();
+
+            // Get all attempts by this student for these quizzes
+            var attempts = await _context.StudentQuizAttempts
+                .Where(a => a.StudentId == userId && quizzes.Select(q => q.QuizId).Contains(a.QuizId))
+                .ToListAsync();
+
+            // Build a view model
+            var quizProgress = quizzes.Select(q =>
+            {
+                var attempt = attempts
+                    .Where(a => a.QuizId == q.QuizId && a.SubmissionTime.HasValue)
+                    .OrderByDescending(a => a.SubmissionTime)
+                    .FirstOrDefault();
+
+                int totalPoints = q.Questions.Sum(qq => qq.Points);
+                int score = attempt?.Score ?? 0;
+                decimal percentage = totalPoints > 0 ? (decimal)score / totalPoints * 100 : 0;
+
+                return new WebApplication1.Models.ViewModels.StudentQuizProgressViewModel
+                {
+                    QuizId = q.QuizId,
+                    QuizTitle = q.Title,
+                    AttemptId = attempt?.AttemptId,
+                    AttemptDate = attempt?.SubmissionTime,
+                    Score = score,
+                    TotalPoints = totalPoints,
+                    Percentage = percentage,
+                    Status = attempt == null ? "Not Attempted" : "Completed"
+                };
+            }).ToList();
+
+            var module = await _context.Modules
+                .Include(m => m.Course)
+                .FirstOrDefaultAsync(m => m.ModuleId == moduleId);
+
+            var viewModel = new WebApplication1.Models.ViewModels.StudentProgressViewModel2
+            {
+                Module = module,
+                QuizProgress = quizProgress
+            };
+
+            return View(viewModel);
+        }
+
 
 
         [Authorize]
@@ -577,7 +632,7 @@ namespace WebApplication1.Controllers
             if (attempt == null)
             {
                 TempData["ErrorMessage"] = "Quiz attempt not found.";
-                return RedirectToAction("Materials");
+                return RedirectToAction("ModuleDetails");
             }
 
             // If not submitted yet, redirect to take quiz
