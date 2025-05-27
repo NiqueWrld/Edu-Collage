@@ -30,6 +30,7 @@
   <ItemGroup>
     <Folder Include="Views\Library\Admin\" />
     <Folder Include="Views\Shared\Chat\" />
+    <Folder Include="wwwroot\uploads\assignments\" />
   </ItemGroup>
 
 </Project>
