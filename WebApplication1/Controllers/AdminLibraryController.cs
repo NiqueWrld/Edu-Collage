@@ -62,7 +62,7 @@ namespace WebApplication1.Controllers
                     studentIds,
                     "New Book Available",
                     $"A new book '{resource.Name}' by {resource.Author} is now available in the library.",
-                    "/Library/AvailableBooks",
+                    "/Library/BookResources",
                     NotificationType.General
                 );
             }
@@ -97,7 +97,7 @@ namespace WebApplication1.Controllers
                     studentIds,
                     "New Computer Available",
                     $"A new computer '{resource.Name}' ({resource.Specifications}) is now available in the library at {resource.Location}.",
-                    "/Library/AvailableComputers",
+                    "/Library/BookResources",
                     NotificationType.General
                 );
             }
