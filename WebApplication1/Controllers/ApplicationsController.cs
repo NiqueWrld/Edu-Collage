@@ -18,6 +18,7 @@ namespace WebApplication1.Controllers
     {
         private readonly NexelContext _context;
         private readonly NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public ApplicationsController(NexelContext context, NotificationService notificationService)
         {
@@ -114,7 +115,7 @@ namespace WebApplication1.Controllers
                                     $"/Student/TrackApplications",
                                     NotificationType.System
                                 );
-                                application.ReviewedDate = DateTime.Now;
+                                application.ReviewedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                                 break;
 
                             case Application.ApplicationStatus.Approved:
@@ -126,7 +127,7 @@ namespace WebApplication1.Controllers
                                     $"/Student/ProceedToPayment/{application.ApplicationId}",
                                     NotificationType.System
                                 );
-                                application.ApprovedDate = DateTime.Now;
+                                application.ApprovedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                                 break;
 
                             case Application.ApplicationStatus.Rejected:
@@ -138,7 +139,7 @@ namespace WebApplication1.Controllers
                                     $"/Student/TrackApplications",
                                     NotificationType.System
                                 );
-                                application.RejectedDate = DateTime.Now;
+                                application.RejectedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                                 break;
                         }
                     }
@@ -257,13 +258,13 @@ namespace WebApplication1.Controllers
             switch (status)
             {
                 case Application.ApplicationStatus.UnderReview:
-                    application.ReviewedDate = DateTime.Now;
+                    application.ReviewedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                     break;
                 case Application.ApplicationStatus.Approved:
-                    application.ApprovedDate = DateTime.Now;
-                    break;
+                    application.ApprovedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
+                    break;  
                 case Application.ApplicationStatus.Rejected:
-                    application.RejectedDate = DateTime.Now;
+                    application.RejectedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                     break;
             }
 

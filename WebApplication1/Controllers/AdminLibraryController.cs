@@ -17,6 +17,7 @@ namespace WebApplication1.Controllers
         private readonly NexelContext _context;
         private readonly NotificationService _notificationService;
         private readonly UserManager<IdentityUser> _userManager;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public AdminLibraryController(
             NexelContext context,
@@ -168,10 +169,10 @@ namespace WebApplication1.Controllers
             {
                 TempData["ErrorMessage"] = "Invalid PIN. Please try again.";
                 return RedirectToAction(nameof(ActiveBookings));
-            }
+                }
 
             booking.Status = BookingStatus.Returned;
-            booking.ReturnDate = DateTime.UtcNow;
+            booking.ReturnDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
             booking.Resource.IsAvailable = true;
 
             await _context.SaveChangesAsync();

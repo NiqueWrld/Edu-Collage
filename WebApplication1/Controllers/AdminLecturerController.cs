@@ -22,6 +22,7 @@ namespace WebApplication1.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public AdminLecturerController(
             NexelContext context,
@@ -177,7 +178,7 @@ namespace WebApplication1.Controllers
                     {
                         ModuleId = model.ModuleId,
                         LecturerId = model.LecturerId,
-                        AssignedDate = DateTime.UtcNow
+                        AssignedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone)
                     };
 
                     _context.ModuleLecturers.Add(assignment);

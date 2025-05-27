@@ -24,6 +24,7 @@ namespace WebApplication1.Controllers
         private readonly ILogger<StudentController> _logger;
         private readonly BraintreeGateway _braintreeGateway;
         private NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public StudentController(NexelContext context, UserManager<IdentityUser> userManager, IConfiguration configuration, BraintreeGateway braintreeGateway, NotificationService notificationService,  ILogger<StudentController> logger = null )
         {
@@ -105,7 +106,7 @@ namespace WebApplication1.Controllers
                 // Create a new Payment record
                 var payment = new Payment
                 {
-                    PaymentDate = DateTime.UtcNow,
+                    PaymentDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone),
                     Amount = application.ApplicationFee,
                     PaymentMethod = "Credit Card",
                     Status = "Completed",
@@ -257,7 +258,7 @@ namespace WebApplication1.Controllers
 
                 existingSubmission.FileUrl = "/submissions/" + uniqueFileName;
                 existingSubmission.Comments = model.Comments;
-                existingSubmission.SubmissionDate = DateTime.UtcNow;
+                existingSubmission.SubmissionDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
 
                 _context.Update(existingSubmission);
             }
@@ -269,7 +270,7 @@ namespace WebApplication1.Controllers
                     StudentId = userId,
                     FileUrl = "/uploads/submissions/" + uniqueFileName,
                     Comments = model.Comments,
-                    SubmissionDate = DateTime.UtcNow
+                    SubmissionDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone)
                 };
 
                 _context.AssignmentSubmissions.Add(submission);
@@ -665,7 +666,7 @@ namespace WebApplication1.Controllers
             {
                 QuizId = quizId,
                 StudentId = userId,
-                StartTime = DateTime.UtcNow,
+                StartTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone),
                 IsSubmitted = false
             };
             _context.StudentQuizAttempts.Add(attempt);
@@ -720,7 +721,7 @@ namespace WebApplication1.Controllers
             }
 
             attempt.IsSubmitted = true;
-            TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+
             attempt.SubmissionTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
 
             // Check if the quiz contains any short answer questions

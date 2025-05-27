@@ -14,6 +14,7 @@ namespace WebApplication1.Controllers
     {
         private readonly NexelContext _context;
         private readonly NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public LibraryController(NexelContext context, NotificationService notificationService)
         {
@@ -86,7 +87,7 @@ namespace WebApplication1.Controllers
 
             Random random = new Random();
 
-var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+
 var bookingDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
 
 
@@ -125,7 +126,7 @@ var bookingDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTi
                 // Create a reminder task that will be triggered 2 days before the due date
                 // This is a simplified implementation - in a real app, you might use a background job scheduler
                 var reminderDate = booking.DueDate.AddDays(-2);
-                if (reminderDate > DateTime.UtcNow)
+                if (reminderDate > TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone))
                 {
                     await _notificationService.CreateNotificationAsync(
                         userId,
@@ -218,7 +219,7 @@ var bookingDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTi
             }
 
             booking.Status = BookingStatus.Returned;
-            booking.ReturnDate = DateTime.UtcNow;
+            booking.ReturnDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone); ;
             booking.Resource.IsAvailable = true;
 
             await _context.SaveChangesAsync();

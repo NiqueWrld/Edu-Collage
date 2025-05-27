@@ -15,6 +15,7 @@ namespace WebApplication1.Controllers
         private readonly NexelContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public AdminController(NexelContext context, UserManager<IdentityUser> userManager, NotificationService notificationService)
         {
@@ -44,7 +45,7 @@ namespace WebApplication1.Controllers
 
             var totalApplications = await _context.Applications.CountAsync();
             var lecturesThisWeek = await _context.ModuleLecturers
-                .Where(m => m.AssignedDate >= DateTime.UtcNow.AddDays(-7))
+                .Where(m => m.AssignedDate >= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone).AddDays(-7))
                 .CountAsync();
 
             var viewModel = new AdminDashboardViewModel
@@ -238,13 +239,13 @@ namespace WebApplication1.Controllers
 
             // Update application details based on decision
             application.AdminComments = adminComments;
-            application.ReviewedDate = DateTime.UtcNow;
+            application.ReviewedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
             application.ProcessedByUserId = admin.Id;
 
             if (decision.Equals("approve", StringComparison.OrdinalIgnoreCase))
             {
                 application.Status = Application.ApplicationStatus.Approved;
-                application.ApprovedDate = DateTime.UtcNow;
+                application.ApprovedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                 application.RejectedDate = null; // Clear rejection date if previously set
 
                 await _notificationService.CreateNotificationAsync(
@@ -259,7 +260,7 @@ namespace WebApplication1.Controllers
             else if (decision.Equals("reject", StringComparison.OrdinalIgnoreCase))
             {
                 application.Status = Application.ApplicationStatus.Rejected;
-                application.RejectedDate = DateTime.UtcNow;
+                application.RejectedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
                 application.ApprovedDate = null; // Clear approval date if previously set
 
                 await _notificationService.CreateNotificationAsync(

@@ -18,6 +18,7 @@ namespace WebApplication1.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private NotificationService _notificationService;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
 
         public LecturerController(
             NexelContext context,
@@ -492,7 +493,7 @@ namespace WebApplication1.Controllers
                     Type = model.Type,
                     ModuleId = model.ModuleId,
                     UploadedById = userId,
-                    UploadedDate = DateTime.UtcNow
+                    UploadedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone)
                 };
 
                 // Handle file upload or URL
@@ -762,7 +763,7 @@ namespace WebApplication1.Controllers
                     Description = model.Description,
                     ModuleId = model.ModuleId,
                     CreatedById = userId,
-                    CreatedDate = DateTime.UtcNow,
+                    CreatedDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone),
                     StartDate = model.StartDate,
                     EndDate = model.EndDate,
                     TimeLimit = model.TimeLimit,

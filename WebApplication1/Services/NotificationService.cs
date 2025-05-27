@@ -12,6 +12,8 @@ namespace WebApplication1.Services
     public class NotificationService
     {
         private readonly NexelContext _context;
+        TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+
 
         public NotificationService(NexelContext context)
         {
@@ -74,7 +76,7 @@ namespace WebApplication1.Services
                 Message = message,
                 Link = link,
                 Type = type,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone)
             };
 
             _context.Notifications.Add(notification);
@@ -83,9 +85,6 @@ namespace WebApplication1.Services
 
         public async Task CreateBulkNotificationsAsync(IEnumerable<string> userIds, string title, string message, string link = null, NotificationType type = NotificationType.General)
         {
-            var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
-            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
-
 
             var notifications = userIds.Select(userId => new Notification
             {
@@ -94,7 +93,7 @@ namespace WebApplication1.Services
                 Message = message,
                 Link = link,
                 Type = type,
-                CreatedAt = now
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone)
             });
 
             _context.Notifications.AddRange(notifications);
