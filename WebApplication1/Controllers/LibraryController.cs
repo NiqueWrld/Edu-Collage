@@ -86,13 +86,17 @@ namespace WebApplication1.Controllers
 
             Random random = new Random();
 
+var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+var bookingDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
+
+
             var booking = new ResourceBooking
             {
                 ReturnPin = random.Next(1000, 10000).ToString(),
                 CollectionPin = random.Next(1000, 10000).ToString(),
                 ResourceId = resourceId,
                 IdentityUserId = userId,
-                BookingDate = DateTime.UtcNow,
+                BookingDate = bookingDate,
                 Status = BookingStatus.Active
             };
 
