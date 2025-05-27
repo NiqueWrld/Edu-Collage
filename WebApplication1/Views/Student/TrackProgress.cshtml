@@ -297,8 +297,7 @@
                                                         @(lastAttempt != null ? lastAttempt.StartTime.ToString("yyyy-MM-dd") : "-")
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                        <a href="@Url.Action("Details", "Quiz", new { id = quizGroup.Quiz.QuizId })" class="text-indigo-600 hover:text-indigo-900 mr-3">View Quiz</a>
-                                                        <a href="#" class="text-indigo-600 hover:text-indigo-900">History</a>
+                                                        <a href="@Url.Action("StartQuiz", new { quizid = quizGroup.Quiz.QuizId })" class="text-indigo-600 hover:text-indigo-900 mr-3">View Quiz</a>
                                                     </td>
                                                 </tr>
                                             }

@@ -38,6 +38,9 @@ namespace WebApplication1.Models
         [StringLength(4)]
         public string ReturnPin { get; set; }
 
+        [StringLength(4)]
+        public string CollectionPin { get; set; }
+
         // Automatic due date calculation based on resource type
         public void CalculateDueDate()
         {

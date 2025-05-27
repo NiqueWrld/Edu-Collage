@@ -5,6 +5,7 @@ using System.Security.Claims;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Models.ViewModels;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -12,10 +13,12 @@ namespace WebApplication1.Controllers
     public class LibraryController : Controller
     {
         private readonly NexelContext _context;
+        private readonly NotificationService _notificationService;
 
-        public LibraryController(NexelContext context)
+        public LibraryController(NexelContext context, NotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // GET: Library home page with options
@@ -86,6 +89,7 @@ namespace WebApplication1.Controllers
             var booking = new ResourceBooking
             {
                 ReturnPin = random.Next(1000, 10000).ToString(),
+                CollectionPin = random.Next(1000, 10000).ToString(),
                 ResourceId = resourceId,
                 IdentityUserId = userId,
                 BookingDate = DateTime.UtcNow,
@@ -102,6 +106,33 @@ namespace WebApplication1.Controllers
             _context.ResourceBookings.Add(booking);
             await _context.SaveChangesAsync();
 
+            // Send notification to the user about successful booking
+            await _notificationService.CreateNotificationAsync(
+                userId,
+                "Resource Booked Successfully",
+                $"You have booked {resource.Name} until {booking.DueDate.ToString("yyyy-MM-dd HH:mm")}. Your return PIN is {booking.ReturnPin}.",
+                $"/Library/MyBookings",
+                NotificationType.General
+            );
+
+            // If due date is for a book (longer period), create a reminder notification for 2 days before due date
+            if (resource.Type == ResourceType.Book)
+            {
+                // Create a reminder task that will be triggered 2 days before the due date
+                // This is a simplified implementation - in a real app, you might use a background job scheduler
+                var reminderDate = booking.DueDate.AddDays(-2);
+                if (reminderDate > DateTime.UtcNow)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        userId,
+                        "Book Return Reminder",
+                        $"Your book '{resource.Name}' is due to be returned in 2 days. Please ensure timely return to avoid late fees.",
+                        $"/Library/MyBookings",
+                        NotificationType.General
+                    );
+                }
+            }
+
             TempData["SuccessMessage"] = $"You have successfully booked this {(resource.Type == ResourceType.Book ? "book" : "computer")}!";
             return RedirectToAction(nameof(MyBookings));
         }
@@ -115,6 +146,30 @@ namespace WebApplication1.Controllers
                 .Include(b => b.Resource)
                 .Where(b => b.IdentityUserId == userId && b.Status != BookingStatus.Returned)
                 .ToListAsync();
+
+            // Check for overdue resources and send notifications if not already notified
+            foreach (var booking in bookings)
+            {
+                if (booking.DueDate < DateTime.UtcNow && booking.Status == BookingStatus.Active)
+                {
+                    // Update status to overdue
+                    booking.Status = BookingStatus.Overdue;
+
+                    // Create overdue notification if not already created
+                    await _notificationService.CreateNotificationAsync(
+                        userId,
+                        "Resource Overdue",
+                        $"Your {booking.Resource.Type} '{booking.Resource.Name}' is overdue. Please return it as soon as possible to avoid additional fees.",
+                        $"/Library/ReturnResource/{booking.BookingId}",
+                        NotificationType.General
+                    );
+                }
+            }
+
+            if (bookings.Any(b => b.Status == BookingStatus.Overdue))
+            {
+                await _context.SaveChangesAsync();
+            }
 
             return View(bookings);
         }
@@ -163,8 +218,19 @@ namespace WebApplication1.Controllers
             booking.Resource.IsAvailable = true;
 
             await _context.SaveChangesAsync();
+
+            // Send confirmation notification
+            await _notificationService.CreateNotificationAsync(
+                userId,
+                "Resource Returned Successfully",
+                $"Thank you for returning {booking.Resource.Name}. The resource has been marked as returned.",
+                $"/Library/MyBookings",
+                NotificationType.General
+            );
+
             TempData["SuccessMessage"] = "Resource returned successfully!";
             return RedirectToAction(nameof(MyBookings));
         }
+
     }
 }

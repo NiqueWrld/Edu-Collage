@@ -24,6 +24,7 @@ namespace WebApplication1.Models
 
         public DayOfWeek? ClassDay { get; set; }
         public TimeSpan? ClassTime { get; set; }
+        public string? ModuleVenue { get; set; }
 
         public SemesterNumber Semester { get; set; }
 

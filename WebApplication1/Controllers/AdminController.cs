@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
@@ -13,12 +14,15 @@ namespace WebApplication1.Controllers
     {
         private readonly NexelContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly NotificationService _notificationService;
 
-        public AdminController(NexelContext context , UserManager<IdentityUser> userManager)
+        public AdminController(NexelContext context, UserManager<IdentityUser> userManager, NotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
+            _notificationService = notificationService;
         }
+
 
         public async Task<IActionResult> Courses()
         {
@@ -124,16 +128,12 @@ namespace WebApplication1.Controllers
             return View();
         }
 
-        public async Task<IActionResult> EditModule(int? id)
+        public async Task<IActionResult> EditModule(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
             var module = await _context.Modules
                 .Include(m => m.Course)
-                .FirstOrDefaultAsync(m => m.CourseId == id);
+                .FirstOrDefaultAsync(m => m.ModuleId == id);
 
             if (module == null)
             {
@@ -148,33 +148,39 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditModule(int id, [Bind("ModuleId,ModuleName,ModuleCode,Year,Semester,CourseId")] Module @module)
+        public async Task<IActionResult> EditModule(int id, [Bind("ModuleId,ModuleName,ModuleCode,ModulePrice,Description,Year,Semester,CourseId,ClassDay,ClassTime,ModuleVenue")] Module module)
         {
-            if (id != @module.ModuleId)
+            if (id != module.ModuleId)
             {
                 return NotFound();
             }
 
+            
                 try
                 {
-                    _context.Update(@module);
+                    _context.Update(module);
                     await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(CourseDetails), new { id = module.CourseId });
-            }
+                    return RedirectToAction(nameof(CourseDetails), new { id = module.CourseId });
+                }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ModuleExists(@module.ModuleId))
+                    if (!ModuleExists(module.ModuleId))
                     {
                         return NotFound();
                     }
                     else
                     {
-                    return RedirectToAction(nameof(CourseDetails), new { id = module.CourseId });
+                        throw;
+                    }
                 }
-                }
-             
+            
+            // If not valid, re-populate ViewBag and return view
+            var course = await _context.Courses.FindAsync(module.CourseId);
+            ViewBag.CourseId = module.CourseId;
+            ViewBag.CourseYears = course?.DurationYears ?? 1;
+            return View(module);
         }
+
 
         public async Task<IActionResult> Applications()
         {
@@ -240,12 +246,30 @@ namespace WebApplication1.Controllers
                 application.Status = Application.ApplicationStatus.Approved;
                 application.ApprovedDate = DateTime.UtcNow;
                 application.RejectedDate = null; // Clear rejection date if previously set
+
+                await _notificationService.CreateNotificationAsync(
+        application.IdentityUserId,
+        "Application Approved",
+        $"Your application for {application.Course.CourseName} has been approved.",
+        $"/Student/Applications/Details/{application.ApplicationId}",
+        NotificationType.General
+    );
+
             }
             else if (decision.Equals("reject", StringComparison.OrdinalIgnoreCase))
             {
                 application.Status = Application.ApplicationStatus.Rejected;
                 application.RejectedDate = DateTime.UtcNow;
                 application.ApprovedDate = null; // Clear approval date if previously set
+
+                await _notificationService.CreateNotificationAsync(
+        application.IdentityUserId,
+        "Application Rejected",
+        $"Your application for {application.Course.CourseName} has been rejected.",
+        $"/Student/Applications/Details/{application.ApplicationId}",
+        NotificationType.General
+    );
+
             }
             else
             {
@@ -304,12 +328,13 @@ namespace WebApplication1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddModule([Bind("ModuleId,ModuleName,Description,ModuleCode,Year,Semester,CourseId")] Module module)
+        public async Task<IActionResult> AddModule([Bind("ModuleId,ModuleName,ModuleCode,ModulePrice,Description,Year,Semester,CourseId,ClassDay,ClassTime,ModuleVenue")] Module module)
         {
             _context.Add(module);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(CourseDetails), new { id = module.CourseId });
         }
+
 
         public async Task<IActionResult> EditCourse(int? id)
         {

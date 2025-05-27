@@ -66,39 +66,62 @@
                         <dt class="text-sm font-medium text-gray-500">Module Code</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">@Model.Module.ModuleCode</dd>
                     </div>
+                 
                     <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 items-center">
                         <dt class="text-sm font-medium text-gray-500">Module Time</dt>
-                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex items-center justify-between">
-                            @if (Model.Module.ClassDay != null)
-                            {
-                                <span>@Model.Module.ClassDay at @Model.Module.ClassTime</span>
-                            }
-                            else
-                            {
-                                <span>Time has not been asigned</span>
-                            }
-                            <form method="post" asp-action="SaveClassSchedule" class="space-y-2">
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 flex flex-col">
+                            <span>
+                                Lecture is held
+                                @if (Model.Module.ClassTime != null)
+                                {
+                                    <text>at @Model.Module.ClassTime?.ToString(@"hh\:mm")</text>
+                                }
+                                else
+                                {
+                                    <text>at [Time not set]</text>
+                                }
+                                @if (Model.Module.ClassDay != null)
+                                {
+                                    <text> on @Model.Module.ClassDay</text>
+                                }
+                                else
+                                {
+                                    <text> on [Day not set]</text>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(Model.Module.ModuleVenue))
+                                {
+                                    <text> at @Model.Module.ModuleVenue</text>
+                                }
+                                else
+                                {
+                                    <text> at [Venue not set]</text>
+                                }
+                                .
+                            </span>
+                            <form method="post" asp-action="SaveClassSchedule" class="space-y-2 mt-2">
                                 <input type="hidden" name="ModuleId" value="@Model.Module.ModuleId" />
                                 <div class="flex items-center space-x-4">
                                     <select name="ClassDay" class="border border-gray-300 rounded px-2 py-1 text-sm">
-    <option value="">Select Day</option>
-    <option value="Monday">Monday</option>
-    <option value="Tuesday">Tuesday</option>
-    <option value="Wednesday">Wednesday</option>
-    <option value="Thursday">Thursday</option>
-    <option value="Friday">Friday</option>
-    <option value="Saturday">Saturday</option>
-    <option value="Sunday">Sunday</option>
-</select>
-                                    <input type="time" name="ClassTime" value="@Model.Module.ClassTime" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Class Time" />
+                                        <option value="">Select Day</option>
+                                        @foreach (var day in Enum.GetValues(typeof(DayOfWeek)))
+                                        {
+                                            var isSelected = Model.Module.ClassDay != null && Model.Module.ClassDay.ToString() == day.ToString();
+                                            <option value="@day" selected="@(isSelected ? "selected" : null)">@day</option>
+                                        }
+                                    </select>
+
+
+
+                                    <input type="time" name="ClassTime" value="@(Model.Module.ClassTime?.ToString(@"hh\:mm"))" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Class Time" />
+                                    <input type="text" name="ModuleVenue" value="@Model.Module.ModuleVenue" class="border border-gray-300 rounded px-2 py-1 text-sm" placeholder="Venue" />
                                 </div>
                                 <div class="mt-2 space-x-2">
                                     <button type="submit" class="px-3 py-1.5 text-sm rounded-md text-white bg-blue-600 hover:bg-blue-700">Save</button>
-                                  
                                 </div>
                             </form>
                         </dd>
                     </div>
+
 
                     <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Description</dt>

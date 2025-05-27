@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebApplication1.Data;
 
@@ -11,9 +12,11 @@ using WebApplication1.Data;
 namespace WebApplication1.Migrations
 {
     [DbContext(typeof(NexelContext))]
-    partial class NexelContextModelSnapshot : ModelSnapshot
+    [Migration("20250527041639_initial2")]
+    partial class initial2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -538,9 +541,6 @@ namespace WebApplication1.Migrations
 
                     b.Property<decimal>("ModulePrice")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ModuleVenue")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Semester")
                         .HasColumnType("int");

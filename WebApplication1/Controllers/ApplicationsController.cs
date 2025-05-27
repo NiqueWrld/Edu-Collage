@@ -10,16 +10,19 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using System.Security.Claims;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class ApplicationsController : Controller
     {
         private readonly NexelContext _context;
+        private readonly NotificationService _notificationService;
 
-        public ApplicationsController(NexelContext context)
+        public ApplicationsController(NexelContext context, NotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // GET: Applications
@@ -52,9 +55,6 @@ namespace WebApplication1.Controllers
             return View(application);
         }
 
-        // GET: Applications/Create
-   
-
         // GET: Applications/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -76,8 +76,6 @@ namespace WebApplication1.Controllers
         }
 
         // POST: Applications/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ApplicationId,ApplicationDate,Status,ReviewedDate,ApprovedDate,RejectedDate,FirstName,LastName,PhoneNumber,DateOfBirth,Address,CourseId,StudyYear,IdentificationDocumentPath,AcademicRecordsPath,MotivationLetterPath,ApplicationFee,PaymentId,PaymentRequired,IdentityUserId,AdminComments,ProcessedByUserId")] Application application)
@@ -87,12 +85,81 @@ namespace WebApplication1.Controllers
                 return NotFound();
             }
 
+            // Get the original application to detect status changes
+            var originalApplication = await _context.Applications
+                .Include(a => a.Course)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.ApplicationId == id);
+
             if (ModelState.IsValid)
             {
                 try
                 {
+                    // Check for status changes to send notifications
+                    bool statusChanged = originalApplication.Status != application.Status;
+
+                    if (statusChanged)
+                    {
+                        var course = await _context.Courses.FindAsync(application.CourseId);
+                        string courseName = course?.CourseName ?? "the selected course";
+
+                        switch (application.Status)
+                        {
+                            case Application.ApplicationStatus.UnderReview:
+                                // Notify student that application is under review
+                                await _notificationService.CreateNotificationAsync(
+                                    application.IdentityUserId,
+                                    "Application Under Review",
+                                    $"Your application for {courseName} is now being reviewed.",
+                                    $"/Student/TrackApplications",
+                                    NotificationType.System
+                                );
+                                application.ReviewedDate = DateTime.Now;
+                                break;
+
+                            case Application.ApplicationStatus.Approved:
+                                // Notify student that application is approved
+                                await _notificationService.CreateNotificationAsync(
+                                    application.IdentityUserId,
+                                    "Application Approved",
+                                    $"Your application for {courseName} has been approved! Please proceed to payment.",
+                                    $"/Student/ProceedToPayment/{application.ApplicationId}",
+                                    NotificationType.System
+                                );
+                                application.ApprovedDate = DateTime.Now;
+                                break;
+
+                            case Application.ApplicationStatus.Rejected:
+                                // Notify student that application is rejected
+                                await _notificationService.CreateNotificationAsync(
+                                    application.IdentityUserId,
+                                    "Application Rejected",
+                                    $"Your application for {courseName} was not approved. Please check the comments for more information.",
+                                    $"/Student/TrackApplications",
+                                    NotificationType.System
+                                );
+                                application.RejectedDate = DateTime.Now;
+                                break;
+                        }
+                    }
+
+                    // If admin comments were added or changed, notify the student
+                    if (!string.IsNullOrEmpty(application.AdminComments) &&
+                        application.AdminComments != originalApplication.AdminComments)
+                    {
+                        await _notificationService.CreateNotificationAsync(
+                            application.IdentityUserId,
+                            "Application Updated",
+                            "Your application has been updated with new comments from the administration.",
+                            $"/Student/TrackApplications",
+                            NotificationType.System
+                        );
+                    }
+
                     _context.Update(application);
                     await _context.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "Application updated successfully.";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -144,16 +211,113 @@ namespace WebApplication1.Controllers
             var application = await _context.Applications.FindAsync(id);
             if (application != null)
             {
+                // Notify student that application was deleted
+                await _notificationService.CreateNotificationAsync(
+                    application.IdentityUserId,
+                    "Application Deleted",
+                    "Your application has been deleted by the administration.",
+                    "/Student/TrackApplications",
+                    NotificationType.System
+                );
+
                 _context.Applications.Remove(application);
             }
 
             await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Application deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
         private bool ApplicationExists(int id)
         {
             return _context.Applications.Any(e => e.ApplicationId == id);
+        }
+
+        // POST: Applications/UpdateStatus/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int id, Application.ApplicationStatus status, string comments = null)
+        {
+            var application = await _context.Applications
+                .Include(a => a.Course)
+                .FirstOrDefaultAsync(a => a.ApplicationId == id);
+
+            if (application == null)
+            {
+                return NotFound();
+            }
+
+            var course = application.Course;
+            string courseName = course?.CourseName ?? "the selected course";
+
+            // Update status
+            application.Status = status;
+
+            // Update relevant dates
+            switch (status)
+            {
+                case Application.ApplicationStatus.UnderReview:
+                    application.ReviewedDate = DateTime.Now;
+                    break;
+                case Application.ApplicationStatus.Approved:
+                    application.ApprovedDate = DateTime.Now;
+                    break;
+                case Application.ApplicationStatus.Rejected:
+                    application.RejectedDate = DateTime.Now;
+                    break;
+            }
+
+            // Update admin comments if provided
+            if (!string.IsNullOrEmpty(comments))
+            {
+                application.AdminComments = comments;
+            }
+
+            // Add the current user as the processor
+            application.ProcessedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Send notification
+            string notificationTitle;
+            string notificationMessage;
+            string notificationLink;
+
+            switch (status)
+            {
+                case Application.ApplicationStatus.UnderReview:
+                    notificationTitle = "Application Under Review";
+                    notificationMessage = $"Your application for {courseName} is now being reviewed.";
+                    notificationLink = "/Student/TrackApplications";
+                    break;
+                case Application.ApplicationStatus.Approved:
+                    notificationTitle = "Application Approved";
+                    notificationMessage = $"Your application for {courseName} has been approved! Please proceed to payment.";
+                    notificationLink = $"/Student/ProceedToPayment/{application.ApplicationId}";
+                    break;
+                case Application.ApplicationStatus.Rejected:
+                    notificationTitle = "Application Rejected";
+                    notificationMessage = $"Your application for {courseName} was not approved. Please check the comments for more information.";
+                    notificationLink = "/Student/TrackApplications";
+                    break;
+                default:
+                    notificationTitle = "Application Status Updated";
+                    notificationMessage = $"The status of your application for {courseName} has been updated.";
+                    notificationLink = "/Student/TrackApplications";
+                    break;
+            }
+
+            await _notificationService.CreateNotificationAsync(
+                application.IdentityUserId,
+                notificationTitle,
+                notificationMessage,
+                notificationLink,
+                NotificationType.System
+            );
+
+            _context.Update(application);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Application status updated successfully.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

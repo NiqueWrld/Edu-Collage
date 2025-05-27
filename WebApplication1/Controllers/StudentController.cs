@@ -420,10 +420,25 @@ namespace WebApplication1.Controllers
             }
 
             // 2. If unlimited attempts or not reached max, allow starting new attempt
-            if (quiz.MaxAttempts == 0 || attempts.Count < quiz.MaxAttempts)
+            // Example logic in StartQuiz action
+            string cannotStartReason = null;
+            if (quiz.StartDate != null && quiz.StartDate > DateTime.Now)
             {
-                ViewBag.CanStartQuiz = true;
+                cannotStartReason = "Quiz is not open yet.";
             }
+            else if (quiz.EndDate != null && quiz.EndDate < DateTime.Now)
+            {
+                cannotStartReason = "Quiz has already closed.";
+            }
+            else if (quiz.MaxAttempts > 0 && attempts.Count >= quiz.MaxAttempts)
+            {
+                cannotStartReason = "Max attempts reached.";
+            }
+
+            ViewBag.CanStartQuiz = string.IsNullOrEmpty(cannotStartReason);
+            ViewBag.CannotStartReason = cannotStartReason;
+
+
 
             return View(quiz);
 
@@ -446,29 +461,48 @@ namespace WebApplication1.Controllers
                 .ToListAsync();
 
             // Build a view model
+            // Build a view model
             var quizProgress = quizzes.Select(q =>
             {
-                var attempt = attempts
+                // Find the attempt with the highest score for this quiz
+                var bestAttempt = attempts
                     .Where(a => a.QuizId == q.QuizId && a.SubmissionTime.HasValue)
-                    .OrderByDescending(a => a.SubmissionTime)
+                    .OrderByDescending(a => a.Score ?? 0)
+                    .ThenByDescending(a => a.SubmissionTime)
                     .FirstOrDefault();
 
                 int totalPoints = q.Questions.Sum(qq => qq.Points);
-                int score = attempt?.Score ?? 0;
-                decimal percentage = totalPoints > 0 ? (decimal)score / totalPoints * 100 : 0;
+                int earnedPoints = 0;
+                decimal percentage = 0;
+
+                if (bestAttempt != null)
+                {
+                    // Load answers for this attempt and their related questions
+                    var attemptAnswers = _context.StudentAnswers
+                        .Where(a => a.AttemptId == bestAttempt.AttemptId)
+                        .Include(a => a.Question)
+                        .ToList();
+
+                    earnedPoints = attemptAnswers
+                        .Where(a => a.IsCorrect == true)
+                        .Sum(a => a.PointsAwarded ?? 0);
+
+                    percentage = totalPoints > 0 ? (decimal)earnedPoints / totalPoints * 100 : 0;
+                }
 
                 return new WebApplication1.Models.ViewModels.StudentQuizProgressViewModel
                 {
                     QuizId = q.QuizId,
                     QuizTitle = q.Title,
-                    AttemptId = attempt?.AttemptId,
-                    AttemptDate = attempt?.SubmissionTime,
-                    Score = score,
+                    AttemptId = bestAttempt?.AttemptId,
+                    AttemptDate = bestAttempt?.SubmissionTime,
+                    Score = earnedPoints,
                     TotalPoints = totalPoints,
                     Percentage = percentage,
-                    Status = attempt == null ? "Not Attempted" : "Completed"
+                    Status = bestAttempt == null ? "Not Attempted" : "Completed"
                 };
             }).ToList();
+
 
             var module = await _context.Modules
                 .Include(m => m.Course)
@@ -658,8 +692,10 @@ namespace WebApplication1.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var attempt = await _context.StudentQuizAttempts
+                .Include(a => a.Quiz)
+                    .ThenInclude(q => q.Questions)
                 .Include(a => a.Answers)
-                .ThenInclude(a => a.Question)
+                    .ThenInclude(a => a.Question)
                 .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.StudentId == userId);
 
             if (attempt == null) return NotFound();
@@ -670,19 +706,39 @@ namespace WebApplication1.Controllers
                 if (answers.TryGetValue($"answer_{ans.QuestionId}", out var value))
                     ans.Answer = value;
 
-                if (ans.Question.Type == QuestionType.MultipleChoice || ans.Question.Type == QuestionType.TrueFalse && ans.Answer == ans.Question.CorrectAnswer)
+                if ((ans.Question.Type == QuestionType.MultipleChoice || ans.Question.Type == QuestionType.TrueFalse)
+                    && ans.Answer == ans.Question.CorrectAnswer)
                 {
                     ans.IsCorrect = true;
                     ans.PointsAwarded = ans.Question.Points;
                 }
+                else
+                {
+                    ans.IsCorrect = false;
+                    ans.PointsAwarded = 0;
+                }
             }
 
             attempt.IsSubmitted = true;
-            attempt.SubmissionTime = DateTime.UtcNow;
+            TimeZoneInfo southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+            attempt.SubmissionTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
+
+            // Check if the quiz contains any short answer questions
+            bool hasShortQuestion = attempt.Quiz.Questions.Any(q => q.Type == QuestionType.ShortAnswer);
+
+            if (!hasShortQuestion)
+            {
+                // Calculate and save the score
+                attempt.Score = attempt.Answers
+                    .Where(a => a.IsCorrect == true)
+                    .Sum(a => a.PointsAwarded ?? 0);
+            }
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction("QuizResults", new { attemptId });
         }
+
 
         public async Task<IActionResult> TrackProgress()
         {
@@ -884,10 +940,6 @@ namespace WebApplication1.Controllers
                 .ToListAsync();
 
             ViewBag.PreviousAttempts = previousAttempts;
-
-            // Set ViewBag values for display
-            ViewBag.CurrentDateTime = "2025-05-15 12:52:14";
-            ViewBag.CurrentUser = "NiqueWrld";
 
             return View(attempt);
         }

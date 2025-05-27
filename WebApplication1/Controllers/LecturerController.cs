@@ -787,7 +787,7 @@ namespace WebApplication1.Controllers
                 enrolledStudents,
                 "New Quiz Available",
                 $"A new quiz '{quiz.Title}' has been posted for {module.ModuleName}.",
-                $"/Student/StartQuiz/{quiz.QuizId}",
+                $"/Student/StartQuiz/?quizid={quiz.QuizId}",
                 NotificationType.Quiz
             );
 
@@ -1438,11 +1438,11 @@ namespace WebApplication1.Controllers
 
             module.ClassDay = model.ClassDay;
             module.ClassTime = model.ClassTime;
+            module.ModuleVenue = model.ModuleVenue;
 
             _context.SaveChanges();
 
-            return RedirectToAction("ModuleDetails");
-            return RedirectToAction(nameof(Module), new { id = module.ModuleId });
+            return RedirectToAction(nameof(ModuleDetails), new { id = module.ModuleId });
         }
 
         #endregion
