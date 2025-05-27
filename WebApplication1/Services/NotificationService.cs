@@ -83,6 +83,10 @@ namespace WebApplication1.Services
 
         public async Task CreateBulkNotificationsAsync(IEnumerable<string> userIds, string title, string message, string link = null, NotificationType type = NotificationType.General)
         {
+            var southAfricaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("South Africa Standard Time");
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone);
+
+
             var notifications = userIds.Select(userId => new Notification
             {
                 UserId = userId,
@@ -90,7 +94,7 @@ namespace WebApplication1.Services
                 Message = message,
                 Link = link,
                 Type = type,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = now
             });
 
             _context.Notifications.AddRange(notifications);
