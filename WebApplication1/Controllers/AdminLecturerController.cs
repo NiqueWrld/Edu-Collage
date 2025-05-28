@@ -366,7 +366,36 @@ namespace WebApplication1.Controllers
             TempData["SuccessMessage"] = "Lecturer account deactivated successfully.";
             return RedirectToAction(nameof(Index));
         }
-        
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateLecturer(string id)
+        {
+            var lecturer = await _userManager.FindByIdAsync(id);
+
+            if (lecturer == null)
+            {
+                return NotFound();
+            }
+
+            // Remove lockout (activate account)
+            await _userManager.SetLockoutEndDateAsync(lecturer, null);
+            await _userManager.UpdateSecurityStampAsync(lecturer);
+
+            // Optionally notify the lecturer
+            await _notificationService.CreateNotificationAsync(
+                lecturer.Id,
+                "Account Activated",
+                "Your lecturer account has been re-activated by an administrator.",
+                "/Lecturer/Dashboard",
+                NotificationType.System
+            );
+
+            TempData["SuccessMessage"] = "Lecturer account activated successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+
         // GET: Edit lecturer account
         public async Task<IActionResult> EditLecturer(string id)
         {

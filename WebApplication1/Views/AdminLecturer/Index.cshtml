@@ -1,4 +1,6 @@
-﻿@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+﻿@using Microsoft.AspNetCore.Identity
+@model IEnumerable<Microsoft.AspNetCore.Identity.IdentityUser>
+@inject UserManager<IdentityUser> UserManager
 
 @{
     ViewData["Title"] = "Manage Lecturers";
@@ -35,17 +37,48 @@
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
             @if (Model.Any())
             {
-                <ul class="divide-y divide-gray-200">
+                <!-- Search Bar -->
+                <div class="p-4 border-b border-gray-200">
+                    <input id="lecturerSearch" type="text" placeholder="Search lecturers by email or ID..."
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+                </div>
+                <ul id="lecturerList" class="divide-y divide-gray-200">
                     @foreach (var lecturer in Model)
                     {
-                        <li class="px-4 py-4 sm:px-6">
-                            <div class="flex items-center justify-between">
+                        var isLocked = await UserManager.IsLockedOutAsync(lecturer);
+                        <li class="px-6 py-5 sm:px-8 hover:bg-gray-50 transition-colors lecturer-item"
+                            data-search="@($"{lecturer.Email} {lecturer.Id}")">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <div>
-                                    <h3 class="text-lg font-medium text-gray-900">@lecturer.Email</h3>
-                                    <p class="mt-1 text-sm text-gray-500">ID: @lecturer.Id</p>
+                                    <h3 class="text-lg font-semibold text-gray-900">@lecturer.Email</h3>
+                                    <p class="mt-1 text-xs text-gray-500">ID: @lecturer.Id</p>
                                 </div>
-                                <div class="flex">
-                                    <a href="@Url.Action("ManageModules", new { id = lecturer.Id })" class="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                                    @if (isLocked)
+                                    {
+                                        <form asp-action="ActivateLecturer" asp-route-id="@lecturer.Id" method="post" style="display:inline">
+                                            <button type="submit" class="inline-flex items-center px-3 py-2 border border-green-600 shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Activate Lecturer
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="DeactivateLecturer" asp-route-id="@lecturer.Id" method="post" style="display:inline">
+                                            <button type="submit" class="inline-flex items-center px-3 py-2 border border-red-600 shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition"
+                                                    onclick="return confirm('Are you sure you want to deactivate this lecturer?');">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                Deactivate Lecturer
+                                            </button>
+                                        </form>
+                                    }
+                                    <a href="@Url.Action("ManageModules", new { id = lecturer.Id })"
+                                       class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                         </svg>
@@ -66,3 +99,15 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.getElementById('lecturerSearch').addEventListener('input', function () {
+            var filter = this.value.toLowerCase();
+            document.querySelectorAll('.lecturer-item').forEach(function (item) {
+                var text = item.getAttribute('data-search').toLowerCase();
+                item.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+    </script>
+}

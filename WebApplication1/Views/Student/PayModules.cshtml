@@ -1,0 +1,234 @@
+﻿@model WebApplication1.Controllers.StudentController.ModulePaymentListViewModel
+
+@{
+    ViewData["Title"] = "Pay for Modules";
+    var groupedModules = Model.Modules
+        .GroupBy(m => new { m.Year, m.Semester })
+        .OrderBy(g => g.Key.Year)
+        .ThenBy(g => g.Key.Semester)
+        .ToList();
+}
+
+<div class="max-w-5xl mx-auto py-8">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Pay for Your Modules</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-green-700">@TempData["SuccessMessage"]</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-red-700">@TempData["ErrorMessage"]</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    <form id="payment-form" asp-action="PayModules" method="post" class="space-y-8">
+        <div class="space-y-4">
+            @{
+                int moduleIndex = 0;
+            }
+            @foreach (var group in groupedModules)
+            {
+                var dropdownId = $"dropdown-{group.Key.Year}-{group.Key.Semester}";
+                <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <button type="button" class="w-full flex justify-between items-center px-4 py-4 text-left focus:outline-none" onclick="toggleDropdown('@dropdownId')">
+                        <div>
+                            <span class="text-lg font-semibold text-indigo-700">Year @group.Key.Year - @group.Key.Semester</span>
+                            <span class="ml-2 text-sm text-gray-400">(@group.Count() module@(group.Count() > 1 ? "s" : ""))</span>
+                        </div>
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div id="@dropdownId" style="display: none;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+                            @foreach (var module in group)
+                            {
+                                <div class="bg-white shadow rounded-lg p-5 flex flex-col h-full border border-gray-200">
+                                    <div class="flex items-center mb-3">
+                                        <input type="checkbox"
+                                               asp-for="Modules[@moduleIndex].Selected"
+                                               class="module-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2"
+                                               data-price="@module.ModulePrice" />
+                                        <span class="text-lg font-semibold text-gray-700">@module.ModuleName</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-sm text-gray-500 mb-1">
+                                            <span class="font-medium">Code:</span> @module.ModuleCode
+                                        </div>
+                                        <div class="text-sm text-gray-500 mb-1">
+                                            <span class="font-medium">Price:</span> <span class="text-green-700 font-bold">@module.ModulePrice.ToString("C")</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" asp-for="Modules[@moduleIndex].ModuleId" />
+                                    <input type="hidden" asp-for="Modules[@moduleIndex].ModuleName" />
+                                    <input type="hidden" asp-for="Modules[@moduleIndex].ModuleCode" />
+                                    <input type="hidden" asp-for="Modules[@moduleIndex].ModulePrice" />
+                                </div>
+                                moduleIndex++;
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="flex items-center justify-between mt-8">
+            <div class="text-xl font-bold text-gray-800">
+                Total: <span id="totalAmount" class="text-green-700">0.00</span>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <div id="card-container" class="space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+                <div>
+                    <label for="card-number" class="block text-base font-semibold text-gray-800 mb-3">Card Number</label>
+                    <div id="card-number" class="hosted-field-input border-2 border-gray-200 rounded-xl px-4 py-2 h-12 bg-gray-50 transition-all duration-200 hover:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-100 focus-within:border-indigo-500 focus-within:bg-white"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label for="expiration-date" class="block text-base font-semibold text-gray-800 mb-3">Expiration Date</label>
+                        <div id="expiration-date" class="hosted-field-input border-2 border-gray-200 rounded-xl px-4 py-2 h-12 bg-gray-50 transition-all duration-200 hover:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-100 focus-within:border-indigo-500 focus-within:bg-white"></div>
+                    </div>
+                    <div>
+                        <label for="cvv" class="block text-base font-semibold text-gray-800 mb-3">CVV</label>
+                        <div id="cvv" class="hosted-field-input border-2 border-gray-200 rounded-xl px-4 py-2 h-12 bg-gray-50 transition-all duration-200 hover:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-100 focus-within:border-indigo-500 focus-within:bg-white"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <button type="submit"
+                    class="w-full md:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded shadow hover:bg-blue-700 transition">
+                Pay Selected Modules
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/client.min.js"></script>
+    <script src="https://js.braintreegateway.com/web/3.92.0/js/hosted-fields.min.js"></script>
+    <script>
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('.module-checkbox').forEach(cb => {
+                if (cb.checked) {
+                    total += parseFloat(cb.getAttribute('data-price'));
+                }
+            });
+            document.getElementById('totalAmount').innerText = total.toFixed(2);
+        }
+        document.querySelectorAll('.module-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateTotal);
+        });
+        updateTotal();
+
+        // Dropdown toggle
+        function toggleDropdown(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+            }
+        }
+
+        var form = document.querySelector('#payment-form');
+        var clientToken = '@ViewData["ClientToken"]';
+
+        braintree.client.create({
+            authorization: clientToken
+        }, function (err, clientInstance) {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            braintree.hostedFields.create({
+                client: clientInstance,
+                styles: {
+                    'input': {
+                        'font-size': '14px',
+                        'font-family': 'Arial, sans-serif',
+                        'color': '#111827',
+                        'padding': '0.5rem',
+                        'border': 'none',
+                        'background-color': '#ffffff'
+                    },
+                    ':focus': {
+                        'color': '#000000',
+                        'border-color': '#10B981',
+                        'box-shadow': '0 0 0 2px rgba(16, 185, 129, 0.5)'
+                    },
+                    '::placeholder': {
+                        'color': '#9CA3AF'
+                    },
+                    ':disabled': {
+                        'color': '#D1D5DB'
+                    }
+                },
+                fields: {
+                    number: {
+                        selector: '#card-number',
+                        placeholder: '4111 1111 1111 1111'
+                    },
+                    expirationDate: {
+                        selector: '#expiration-date',
+                        placeholder: 'MM/YY'
+                    },
+                    cvv: {
+                        selector: '#cvv',
+                        placeholder: '123'
+                    }
+                }
+            }, function (err, hostedFieldsInstance) {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    hostedFieldsInstance.tokenize(function (err, payload) {
+                        if (err) {
+                            console.error(err);
+                            alert('Payment failed: ' + err.message);
+                            return;
+                        }
+
+                        var input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'paymentNonce';
+                        input.value = payload.nonce;
+
+                        form.appendChild(input);
+                        form.submit();
+                    });
+                });
+            });
+        });
+    </script>
+}

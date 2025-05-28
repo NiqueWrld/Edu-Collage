@@ -139,6 +139,126 @@ namespace WebApplication1.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> PayModules()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Get approved application and related modules
+            var application = await _context.Applications
+                .Where(a => a.IdentityUserId == userId && a.Status == Application.ApplicationStatus.Approved && a.PaymentId != null)
+                .Include(a => a.Course)
+                    .ThenInclude(c => c.Modules)
+                .FirstOrDefaultAsync();
+
+            if (application == null)
+                return RedirectToAction("Dashboard");
+
+            // Get unpaid modules
+            var paidModuleIds = await _context.ModulePayments
+                .Where(mp => mp.IdentityUserId == userId && mp.Status == ModulePaymentStatus.Completed)
+                .Select(mp => mp.ModuleId)
+                .ToListAsync();
+
+            var unpaidModules = application.Course.Modules
+                .Where(m => !paidModuleIds.Contains(m.ModuleId))
+                .Select(m => new ModulePaymentSelectionViewModel
+                {
+                    ModuleId = m.ModuleId,
+                    ModuleName = m.ModuleName,
+                    ModuleCode = m.ModuleCode,
+                    ModulePrice = m.ModulePrice,
+                    Year = m.Year,
+                    Semester = m.Semester.ToString(),
+                    Selected = false
+                }).ToList();
+
+            var viewModel = new ModulePaymentListViewModel
+            {
+                Modules = unpaidModules,
+                Total = 0
+            };
+
+            var clientToken = await _braintreeGateway.ClientToken.GenerateAsync();
+            ViewData["ClientToken"] = clientToken;
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PayModules(ModulePaymentListViewModel model, string paymentNonce)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var selectedModules = model.Modules.Where(m => m.Selected).ToList();
+            if (!selectedModules.Any())
+            {
+                ModelState.AddModelError("", "Please select at least one module to pay for.");
+                return View(model);
+            }
+
+            var total = selectedModules.Sum(m => m.ModulePrice);
+
+            // Payment logic (Braintree, etc.)
+            var request = new TransactionRequest
+            {
+                Amount = total,
+                PaymentMethodNonce = paymentNonce,
+                Options = new TransactionOptionsRequest
+                {
+                    SubmitForSettlement = true
+                }
+            };
+
+            var result = await _braintreeGateway.Transaction.SaleAsync(request);
+
+            if (result.IsSuccess())
+            {
+                foreach (var module in selectedModules)
+                {
+                    var payment = new ModulePayment
+                    {
+                        IdentityUserId = userId,
+                        ModuleId = module.ModuleId,
+                        Amount = module.ModulePrice,
+                        PaymentDate = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone),
+                        Status = ModulePaymentStatus.Completed
+                    };
+                    _context.ModulePayments.Add(payment);
+                }
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Payment completed successfully!";
+                return RedirectToAction("PayModules");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Payment failed: {result.Message}";
+                return View(model);
+            }
+        }
+
+        public class ModulePaymentSelectionViewModel
+        {
+            public int ModuleId { get; set; }
+            public string ModuleName { get; set; }
+            public string ModuleCode { get; set; }
+            public string Year { get; set; }
+            public string Semester { get; set; }
+            public decimal ModulePrice { get; set; }
+            public bool Selected { get; set; }
+        }
+
+        public class ModulePaymentListViewModel
+        {
+            public List<ModulePaymentSelectionViewModel> Modules { get; set; }
+            public decimal Total { get; set; }
+        }
+
+
+
+
         public async Task<IActionResult> ModuleDetails(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -152,6 +272,15 @@ namespace WebApplication1.Controllers
             if (module == null)
             {
                 return NotFound();
+            }
+
+            bool hasPaid = await _context.ModulePayments
+        .AnyAsync(mp => mp.ModuleId == id && mp.IdentityUserId == userId && mp.Status == ModulePaymentStatus.Completed);
+
+            if (!hasPaid)
+            {
+                TempData["ErrorMessage"] = "You must pay for this module to access its content.";
+                return RedirectToAction("PayModules");
             }
 
             // Get study materials for this module
