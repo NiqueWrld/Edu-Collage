@@ -44,9 +44,14 @@ namespace WebApplication1.Controllers
                 .CountAsync();
 
             var totalApplications = await _context.Applications.CountAsync();
+
+            // Calculate the threshold in C# first
+            var threshold = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone).AddDays(-7);
+
             var lecturesThisWeek = await _context.ModuleLecturers
-                .Where(m => m.AssignedDate >= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, southAfricaTimeZone).AddDays(-7))
+                .Where(m => m.AssignedDate >= threshold)
                 .CountAsync();
+
 
             var viewModel = new AdminDashboardViewModel
             {
