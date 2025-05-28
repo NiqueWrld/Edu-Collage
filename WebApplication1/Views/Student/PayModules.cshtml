@@ -79,7 +79,7 @@
                                             <span class="font-medium">Code:</span> @module.ModuleCode
                                         </div>
                                         <div class="text-sm text-gray-500 mb-1">
-                                            <span class="font-medium">Price:</span> <span class="text-green-700 font-bold">@module.ModulePrice.ToString("C")</span>
+                                            <span class="font-medium">Price:</span> <span class="text-green-700 font-bold">@module.ModulePrice.ToString("C", new System.Globalization.CultureInfo("en-ZA"))</span>
                                         </div>
                                     </div>
                                     <input type="hidden" asp-for="Modules[@moduleIndex].ModuleId" />
@@ -140,7 +140,7 @@
                     total += parseFloat(cb.getAttribute('data-price'));
                 }
             });
-            document.getElementById('totalAmount').innerText = total.toFixed(2);
+            document.getElementById('totalAmount').innerText = "R" + total.toFixed(2);
         }
         document.querySelectorAll('.module-checkbox').forEach(cb => {
             cb.addEventListener('change', updateTotal);

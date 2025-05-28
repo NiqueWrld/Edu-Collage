@@ -74,7 +74,7 @@
                                     <div class="mt-3 flex items-center">
                                         <span class="text-sm text-gray-500 mr-2">Total Price:</span>
                                         <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                            @course.Modules.Sum(m => m.ModulePrice).ToString("C")
+                                            @course.Modules.Sum(m => m.ModulePrice).ToString("C", new System.Globalization.CultureInfo("en-ZA"))
                                         </span>
                                     </div>
                                 </div>
@@ -116,7 +116,7 @@
                                                                 <div class="flex justify-between items-center">
                                                                     <h5 class="text-sm font-medium text-gray-700">@semesterGroup.Key</h5>
                                                                     <span class="text-xs font-medium text-gray-600">
-                                                                        Semester Total: @semesterGroup.Sum(m => m.ModulePrice).ToString("C")
+                                                                        Semester Total: @semesterGroup.Sum(m => m.ModulePrice).ToString("C", new System.Globalization.CultureInfo("en-ZA"))
                                                                     </span>
                                                                 </div>
                                                                 <ul class="mt-2 space-y-3">
@@ -129,7 +129,7 @@
                                                                                     <p class="text-xs text-gray-500 mt-0.5">@module.Description</p>
                                                                                 </div>
                                                                                 <span class="text-sm font-medium text-indigo-700 ml-2 whitespace-nowrap">
-                                                                                    @module.ModulePrice.ToString("C")
+                                                                                    @module.ModulePrice.ToString("C", new System.Globalization.CultureInfo("en-ZA"))
                                                                                 </span>
                                                                             </div>
                                                                         </li>
